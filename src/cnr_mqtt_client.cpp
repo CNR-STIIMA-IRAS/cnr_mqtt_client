@@ -46,7 +46,7 @@ namespace cnr
   {
 
     MQTTClient::MQTTClient( const char *id, const char *host, int port, MsgDecoder *msg_decoder, MsgEncoder *msg_encoder):
-                          decoder_(msg_decoder), encoder_(msg_encoder)
+                            decoder_(msg_decoder), encoder_(msg_encoder)
     {
       /* Required before calling other mosquitto functions */
       mosquitto_lib_init();
@@ -213,7 +213,7 @@ namespace cnr
 
     void MQTTClient::on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
     {
-      decoder_->on_message();
+      decoder_->on_message( msg );
     }
 
   } // end namespace mqtt

@@ -51,7 +51,7 @@ namespace cnr
     public:
       MsgDecoder() {};
       // The method should be reimplemented on the base of the application
-      virtual void on_message() = 0;
+      virtual void on_message( const struct mosquitto_message *msg ) = 0;
     };
 
     class MsgEncoder
@@ -90,7 +90,6 @@ namespace cnr
       typedef void (MQTTClient::*on_publish_callback)  (struct mosquitto *mosq, void *obj, int mid);
       typedef void (MQTTClient::*on_message_callback)  (struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
      
-
       void on_connect  (struct mosquitto *mosq, void *obj, int reason_code);
       void on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos); 
       void on_publish  (struct mosquitto *mosq, void *obj, int mid);
