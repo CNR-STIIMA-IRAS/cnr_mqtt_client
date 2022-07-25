@@ -52,6 +52,20 @@ namespace cnr
       MsgDecoder() {};
       // The method should be reimplemented on the base of the application
       virtual void on_message( const struct mosquitto_message *msg ) = 0;
+      bool isDataValid() {return data_valid_; };
+      bool isNewMessageAvailable() 
+      {
+        if (new_msg_available_)
+        {
+          new_msg_available_ = false;
+          return true;
+        }
+        return false;
+      }
+
+    private:
+      bool data_valid_ = false;
+      bool new_msg_available_ = false;
     };
 
     class MsgEncoder
