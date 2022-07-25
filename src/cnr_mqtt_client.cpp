@@ -146,9 +146,28 @@ namespace cnr
         printf("Error: %s", errbuffer_ );
         /* We might as well disconnect if we were unable to subscribe */
         mosquitto_disconnect(mosq_);
+        return -1;
       }
       return rc;
     }
+
+
+    int MQTTClient::unsubscribe(int *mid, const char *sub)
+    {
+      /* Unsubscribe from the client, then the
+      * subscriptions will be recreated when the client reconnects. */
+      int rc = mosquitto_unsubscribe(mosq_, mid, sub);
+
+      if( rc != MOSQ_ERR_SUCCESS )
+      {
+        strerror_s(errbuffer_,1024,rc);
+        printf("Error: %s", errbuffer_ );
+        return -1;
+      }
+      
+      return rc;
+    }
+
 
     /* This function pretends to read some data from a sensor and publish it.*/
     int MQTTClient::publish( const uint8_t* payload, const uint32_t& payload_len, const std::string& topic_name )
@@ -164,9 +183,11 @@ namespace cnr
       */
       int rc = mosquitto_publish(mosq_, NULL, topic_name.c_str(), payload_len, payload, 0, false);
       if( rc != MOSQ_ERR_SUCCESS )
-        //printf("Error publishing: %s", strerror_r(rc, errbuffer_,1024) );
+      {
         strerror_s(errbuffer_,1024,rc);
         printf("Error: %s", errbuffer_ );
+        return -1;
+      }
       
       return rc;
     }

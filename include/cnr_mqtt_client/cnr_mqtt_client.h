@@ -63,7 +63,7 @@ namespace cnr
         return false;
       }
 
-    private:
+    protected:
       bool data_valid_ = false;
       bool new_msg_available_ = false;
     };
@@ -97,6 +97,7 @@ namespace cnr
 
       int reconnect(unsigned int reconnect_delay, unsigned int reconnect_delay_max, bool reconnect_exponential_backoff);
       int subscribe(int *mid, const char *sub, int qos=0);
+      int unsubscribe(int *mid, const char *sub);
       int publish(const uint8_t* payload, const uint32_t& payload_len, const std::string& topic_name);
 
       typedef void (MQTTClient::*on_connect_callback)  (struct mosquitto *mosq, void *obj, int reason_code);
