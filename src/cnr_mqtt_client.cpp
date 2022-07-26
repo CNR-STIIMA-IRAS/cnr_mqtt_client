@@ -133,9 +133,9 @@ namespace cnr
     }
 
 
-    int MQTTClient::publish( const uint8_t* payload, const uint32_t& payload_len, const std::string& topic_name )
+    int MQTTClient::publish( const void* payload, int& payload_len, const char* topic_name )
     {
-      int rc = mosquitto_publish(mosq_, NULL, topic_name.c_str(), payload_len, payload, 0, false);
+      int rc = mosquitto_publish(mosq_, NULL, topic_name, payload_len, payload, 0, false);
       if( rc != MOSQ_ERR_SUCCESS )
       {
         strerror_s(errbuffer_,1024,rc);
