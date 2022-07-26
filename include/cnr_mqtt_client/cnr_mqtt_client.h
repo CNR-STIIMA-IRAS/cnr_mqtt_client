@@ -2,7 +2,7 @@
 /*
  *  Software License Agreement (New BSD License)
  *
- *  Copyright 2020 National Council of Research of Italy (CNR)
+ *  Copyright 2022 National Council of Research of Italy (CNR)
  *
  *  All rights reserved.
  *
@@ -54,6 +54,7 @@ namespace cnr
       virtual void on_message( const struct mosquitto_message *msg ) = 0;
       bool isDataValid() {return data_valid_; };
       bool isNewMessageAvailable() { return new_msg_available_;}
+      void setDataValid(const bool& data_valid) {data_valid_ = data_valid;}      
       void setNewMessageAvailable(const bool& new_msg_available) {new_msg_available_ = new_msg_available;}
 
     protected:
@@ -107,4 +108,4 @@ namespace cnr
   } // end mqtt namespace 
 } // end cnr namespace
 
-#endif //SIMPLECLIENT_MQTT_H
+#endif //__CNR_MQTT_CLIENT__
