@@ -3,6 +3,7 @@ project(cnr_mqtt_client)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
+set(CMAKE_CXX_STANDARD 11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -101,7 +102,7 @@ find_package(catkin REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES cnr_mqtt_client
-#  CATKIN_DEPENDS 
+#  CATKIN_DEPENDS
   DEPENDS mosquitto
 )
 
@@ -121,7 +122,7 @@ if(WIN32)
 endif()
 
 ## Declare a C++ library
- add_library(${PROJECT_NAME} 
+ add_library(${PROJECT_NAME}
    src/cnr_mqtt_client.cpp
    src/dynamic_callback.cpp
  )

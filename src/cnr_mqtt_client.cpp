@@ -72,8 +72,12 @@ namespace cnr
       if( rc != MOSQ_ERR_SUCCESS )
       {
         mosquitto_destroy(mosq_);
-        strerror_s(errbuffer_, 1024, rc);
-        printf("Error: %s", errbuffer_ );
+        #ifdef WIN32
+          strerror_s(errbuffer_, 1024, rc);
+          printf("Error: %s", errbuffer_ );
+        #else
+          printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
+        #endif
         throw std::runtime_error("Error");
       }
     }
@@ -91,8 +95,12 @@ namespace cnr
       if(rc != MOSQ_ERR_SUCCESS)
       {
         mosquitto_destroy(mosq_);
-       strerror_s(errbuffer_, 1024, rc);
-        printf("Error: %s", errbuffer_ );
+        #ifdef WIN32
+          strerror_s(errbuffer_, 1024, rc);
+          printf("Error: %s", errbuffer_ );
+        #else
+          printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
+        #endif
         return -1;
       }
 
@@ -109,8 +117,12 @@ namespace cnr
       int rc = mosquitto_subscribe(mosq_, mid, sub, qos);
       if(rc != MOSQ_ERR_SUCCESS)
       {
-        strerror_s(errbuffer_, 1024, rc);
-        printf("Error: %s", errbuffer_ );
+        #ifdef WIN32
+          strerror_s(errbuffer_, 1024, rc);
+          printf("Error: %s", errbuffer_ );
+        #else
+          printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
+        #endif
         mosquitto_disconnect(mosq_);
         return -1;
       }
@@ -124,8 +136,12 @@ namespace cnr
 
       if( rc != MOSQ_ERR_SUCCESS )
       {
-        strerror_s(errbuffer_,1024,rc);
-        printf("Error: %s", errbuffer_ );
+        #ifdef WIN32
+          strerror_s(errbuffer_, 1024, rc);
+          printf("Error: %s", errbuffer_ );
+        #else
+          printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
+        #endif
         return -1;
       }
       
@@ -138,8 +154,12 @@ namespace cnr
       int rc = mosquitto_publish(mosq_, NULL, topic_name, payload_len, payload, 0, false);
       if( rc != MOSQ_ERR_SUCCESS )
       {
-        strerror_s(errbuffer_,1024,rc);
-        printf("Error: %s", errbuffer_ );
+        #ifdef WIN32
+          strerror_s(errbuffer_, 1024, rc);
+          printf("Error: %s", errbuffer_ );
+        #else
+          printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
+        #endif
         return -1;
       }
       

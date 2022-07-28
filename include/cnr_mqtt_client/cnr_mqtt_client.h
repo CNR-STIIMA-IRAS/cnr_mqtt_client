@@ -38,6 +38,7 @@
 #define __CNR_MQTT_CLIENT__
 
 #include <string>
+#include <cstring>
 #include <cstdio>
 #include <mosquitto.h>
 
