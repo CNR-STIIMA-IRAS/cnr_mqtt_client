@@ -78,7 +78,7 @@ namespace cnr
         #else
           printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
         #endif
-        throw std::runtime_error("Error");
+        throw std::runtime_error("Error while setting callbacks");
       }
     }
 
@@ -119,9 +119,9 @@ namespace cnr
       {
         #ifdef WIN32
           strerror_s(errbuffer_, 1024, rc);
-          printf("Error: %s", errbuffer_ );
+          printf("Error on subscribe: %s", errbuffer_ );
         #else
-          printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
+          printf("Error on subscribe: %s", strerror_r(rc, errbuffer_, 1024) );
         #endif
         mosquitto_disconnect(mosq_);
         return -1;
@@ -138,9 +138,9 @@ namespace cnr
       {
         #ifdef WIN32
           strerror_s(errbuffer_, 1024, rc);
-          printf("Error: %s", errbuffer_ );
+          printf("Error on unsubscribe: %s", errbuffer_ );
         #else
-          printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
+          printf("Error on unsubscribe: %s", strerror_r(rc, errbuffer_, 1024) );
         #endif
         return -1;
       }
@@ -156,9 +156,9 @@ namespace cnr
       {
         #ifdef WIN32
           strerror_s(errbuffer_, 1024, rc);
-          printf("Error: %s", errbuffer_ );
+          printf("Error on publish: %s", errbuffer_ );
         #else
-          printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
+          printf("Error on publish: %s", strerror_r(rc, errbuffer_, 1024) );
         #endif
         return -1;
       }
