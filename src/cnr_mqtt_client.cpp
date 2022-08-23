@@ -74,11 +74,11 @@ namespace cnr
         mosquitto_destroy(mosq_);
         #ifdef WIN32
           strerror_s(errbuffer_, 1024, rc);
-          printf("Error: %s", errbuffer_ );
+          printf("Error while connecting to the broker: %s", errbuffer_ );
         #else
-          printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
+          printf("Error while connecting to the broker: %s", strerror_r(rc, errbuffer_, 1024) );
         #endif
-        throw std::runtime_error("Error while setting callbacks");
+        throw std::runtime_error("Error while connecting to MQTT broker.");
       }
     }
 
@@ -97,9 +97,9 @@ namespace cnr
         mosquitto_destroy(mosq_);
         #ifdef WIN32
           strerror_s(errbuffer_, 1024, rc);
-          printf("Error: %s", errbuffer_ );
+          printf("Error in loop: %s", errbuffer_ );
         #else
-          printf("Error: %s", strerror_r(rc, errbuffer_, 1024) );
+          printf("Error in loop: %s", strerror_r(rc, errbuffer_, 1024) );
         #endif
         return -1;
       }
@@ -151,7 +151,9 @@ namespace cnr
 
     int MQTTClient::publish( const void* payload, int& payload_len, const char* topic_name )
     {
+      
       int rc = mosquitto_publish(mosq_, NULL, topic_name, payload_len, payload, 0, false);
+      
       if( rc != MOSQ_ERR_SUCCESS )
       {
         #ifdef WIN32
