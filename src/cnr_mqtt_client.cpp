@@ -33,7 +33,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -45,7 +44,7 @@ namespace cnr
   namespace mqtt
   {
 
-    MQTTClient::MQTTClient( const char *id, const char *host, int port, MsgDecoder *msg_decoder, MsgEncoder *msg_encoder):
+    MQTTClient::MQTTClient( const char *id, const char *host, int port, MsgDecoder *&msg_decoder, MsgEncoder *&msg_encoder):
                             decoder_(msg_decoder), encoder_(msg_encoder)
     {
       /* Required before calling other mosquitto functions */
@@ -151,7 +150,6 @@ namespace cnr
 
     int MQTTClient::publish( const void* payload, int& payload_len, const char* topic_name )
     {
-      
       int rc = mosquitto_publish(mosq_, NULL, topic_name, payload_len, payload, 0, false);
       
       if( rc != MOSQ_ERR_SUCCESS )
@@ -187,18 +185,30 @@ namespace cnr
 
       if( have_subscription == false )
         mosquitto_disconnect(mosq);
-      
     }
-
 
     void MQTTClient::on_publish(struct mosquitto *mosq, void *obj, int mid)
     {
-      encoder_->on_publish();
+      std::cout << "MQTTClient::on_publish" << std::flush;
+      if (true) //(encoder_ != NULL)
+      {
+        std::cout << "before on_publish" << std::endl;  
+        //encoder_->on_publish(mosq, obj, mid);
+      }
+      else
+        std::cout << "NULL pointer to MsgEncoder" << std::endl;
     }
 
     void MQTTClient::on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
     {
-      decoder_->on_message( msg );
+      std::cout << "MQTTClient::on_message" << std::flush;
+      if (decoder_ != NULL)
+      {
+        std::cout << "before on_message" << std::endl;  
+        //decoder_->on_message( mosq, obj, msg );
+      }
+      else
+        std::cout << "NULL pointer to MsgDecoder" << std::endl;
     }
 
   } // end namespace mqtt

@@ -40,6 +40,7 @@
 #include <string>
 #include <cstring>
 #include <cstdio>
+#include <iostream>
 #include <mosquitto.h>
 
 
@@ -50,9 +51,9 @@ namespace cnr
     class MsgDecoder
     {
     public:
-      MsgDecoder() {};
+      MsgDecoder() { std::cout << "MsgEncoder" << std::endl; };
       // The method should be reimplemented on the base of the application
-      virtual void on_message( const struct mosquitto_message *msg ) = 0;
+      void on_message( struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg ) { std::cout << "Base on_publish method" << std::endl; };
       bool isDataValid() {return data_valid_; };
       bool isNewMessageAvailable() { return new_msg_available_;}
       void setDataValid(const bool& data_valid) {data_valid_ = data_valid;}      
@@ -66,9 +67,9 @@ namespace cnr
     class MsgEncoder
     {
     public:
-      MsgEncoder() {};
+      MsgEncoder() { std::cout << "MsgDecoder" << std::endl; };
       // The method should be reimplemented on the base of the application
-      virtual void on_publish() = 0;
+      void on_publish(struct mosquitto *mosq, void *obj, int mid) { std::cout << "Base on_publish method" << std::endl; };
     };
 
     class MQTTClient 
@@ -82,9 +83,9 @@ namespace cnr
       MsgEncoder* encoder_; 
 
     public:
-      MQTTClient() = delete;
+      //MQTTClient() = delete;
        
-      MQTTClient (const char *id, const char *host, int port, MsgDecoder *msg_decoder, MsgEncoder *msg_encoder );
+      MQTTClient (const char *id, const char *host, int port, MsgDecoder *&msg_decoder, MsgEncoder *&msg_encoder );
       ~MQTTClient();
 
       int loop();
