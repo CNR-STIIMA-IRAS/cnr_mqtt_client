@@ -41,6 +41,7 @@
 #include <cstring>
 #include <cstdio>
 #include <iostream>
+#include <memory>
 #include <mosquitto.h>
 
 
@@ -51,25 +52,25 @@ namespace cnr
     class MsgDecoder
     {
     public:
-      MsgDecoder() { std::cout << "MsgEncoder" << std::endl; };
+      MsgDecoder(): data_valid_(false), new_msg_available_(false) { };
       // The method should be reimplemented on the base of the application
-      void on_message( struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg ) { std::cout << "Base on_publish method" << std::endl; };
+      virtual void on_message( struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg ) { };
       bool isDataValid() {return data_valid_; };
       bool isNewMessageAvailable() { return new_msg_available_;}
       void setDataValid(const bool& data_valid) {data_valid_ = data_valid;}      
       void setNewMessageAvailable(const bool& new_msg_available) {new_msg_available_ = new_msg_available;}
 
-    protected:
-      bool data_valid_ = false;
-      bool new_msg_available_ = false;
+    private:
+      bool data_valid_;
+      bool new_msg_available_;
     };
 
     class MsgEncoder
     {
     public:
-      MsgEncoder() { std::cout << "MsgDecoder" << std::endl; };
+      MsgEncoder() { };
       // The method should be reimplemented on the base of the application
-      void on_publish(struct mosquitto *mosq, void *obj, int mid) { std::cout << "Base on_publish method" << std::endl; };
+      virtual void on_publish(struct mosquitto *mosq, void *obj, int mid) { };
     };
 
     class MQTTClient 
@@ -79,13 +80,11 @@ namespace cnr
       uint8_t obj_[1024];
       int stop_raised_ = 0; 
       char errbuffer_[1024] = {0};
-      MsgDecoder* decoder_;
-      MsgEncoder* encoder_; 
+      bool mosq_initialized_ = false;
 
     public:
-      //MQTTClient() = delete;
-       
-      MQTTClient (const char *id, const char *host, int port, MsgDecoder *&msg_decoder, MsgEncoder *&msg_encoder );
+      MQTTClient() = delete;
+      MQTTClient (const char *id, const char *host, int port, MsgDecoder* msg_decoder, MsgEncoder* msg_encoder );
       ~MQTTClient();
 
       int loop();
@@ -107,6 +106,8 @@ namespace cnr
       void on_message  (struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
 
     };
+
+    bool init_library(MsgEncoder* msg_encoder, MsgDecoder* msg_decoder );
   } // end mqtt namespace 
 } // end cnr namespace
 

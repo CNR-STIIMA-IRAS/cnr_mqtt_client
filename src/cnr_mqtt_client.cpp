@@ -44,8 +44,21 @@ namespace cnr
   namespace mqtt
   {
 
-    MQTTClient::MQTTClient( const char *id, const char *host, int port, MsgDecoder *&msg_decoder, MsgEncoder *&msg_encoder):
-                            decoder_(msg_decoder), encoder_(msg_encoder)
+    MsgDecoder* g_msg_decoder = nullptr;
+    MsgEncoder* g_msg_encoder = nullptr;
+
+    bool init_library(MsgEncoder* msg_encoder, MsgDecoder* msg_decoder )
+    {
+      if(msg_encoder && msg_decoder == NULL )
+        return false;
+      
+      g_msg_encoder = msg_encoder;
+      g_msg_decoder = msg_decoder;
+      
+      return true;
+    }
+
+    MQTTClient::MQTTClient( const char *id, const char *host, int port, MsgDecoder* msg_decoder, MsgEncoder* msg_encoder) 
     {
       /* Required before calling other mosquitto functions */
       mosquitto_lib_init();
@@ -79,31 +92,48 @@ namespace cnr
         #endif
         throw std::runtime_error("Error while connecting to MQTT broker.");
       }
+
+      if (!cnr::mqtt::init_library(msg_encoder, msg_decoder))
+      {
+        return;
+      }
+      mosq_initialized_ = true;
+
     }
 
     MQTTClient::~MQTTClient()
     {   
-      mosquitto_lib_cleanup();
+      if(mosq_initialized_)
+        mosquitto_lib_cleanup();
+      else
+        std::cout << "Mosquitto not initialized!" << std::endl;
     }
 
     int MQTTClient::loop()
     {
-      int rc = 0;
-      /* Run the network loop in a background thread, this call returns quickly. */
-      rc = mosquitto_loop(mosq_,2000,1);
-      if(rc != MOSQ_ERR_SUCCESS)
+      if (mosq_initialized_)
       {
-        mosquitto_destroy(mosq_);
-        #ifdef WIN32
-          strerror_s(errbuffer_, 1024, rc);
-          printf("Error in loop: %s", errbuffer_ );
-        #else
-          printf("Error in loop: %s", strerror_r(rc, errbuffer_, 1024) );
-        #endif
+        int rc = 0;
+        /* Run the network loop in a background thread, this call returns quickly. */
+        rc = mosquitto_loop(mosq_,2000,1);
+        if(rc != MOSQ_ERR_SUCCESS)
+        {
+          mosquitto_destroy(mosq_);
+          #ifdef WIN32
+            strerror_s(errbuffer_, 1024, rc);
+            printf("Error in loop: %s", errbuffer_ );
+          #else
+            printf("Error in loop: %s", strerror_r(rc, errbuffer_, 1024) );
+          #endif
+          return -1;
+        }
+        return rc;
+      }
+      else
+      {
+        std::cout << "Mosquitto not initialized!" << std::endl;
         return -1;
       }
-
-      return rc;
     }
 
     int MQTTClient::reconnect(unsigned int reconnect_delay, unsigned int reconnect_delay_max, bool reconnect_exponential_backoff)
@@ -113,102 +143,128 @@ namespace cnr
         
     int MQTTClient::subscribe(int *mid, const char *sub, int qos)
     {
-      int rc = mosquitto_subscribe(mosq_, mid, sub, qos);
-      if(rc != MOSQ_ERR_SUCCESS)
+      if (mosq_initialized_)
       {
-        #ifdef WIN32
-          strerror_s(errbuffer_, 1024, rc);
-          printf("Error on subscribe: %s", errbuffer_ );
-        #else
-          printf("Error on subscribe: %s", strerror_r(rc, errbuffer_, 1024) );
-        #endif
-        mosquitto_disconnect(mosq_);
+        int rc = mosquitto_subscribe(mosq_, mid, sub, qos);
+        if(rc != MOSQ_ERR_SUCCESS)
+        {
+          #ifdef WIN32
+            strerror_s(errbuffer_, 1024, rc);
+            printf("Error on subscribe: %s", errbuffer_ );
+          #else
+            printf("Error on subscribe: %s", strerror_r(rc, errbuffer_, 1024) );
+          #endif
+          mosquitto_disconnect(mosq_);
+          return -1;
+        }
+        return rc;
+      }
+      else
+      {
+        std::cout << "Mosquitto not initialized!" << std::endl;
         return -1;
       }
-      return rc;
     }
 
 
     int MQTTClient::unsubscribe(int *mid, const char *sub)
     {
-      int rc = mosquitto_unsubscribe(mosq_, mid, sub);
-
-      if( rc != MOSQ_ERR_SUCCESS )
+      if (mosq_initialized_)
       {
-        #ifdef WIN32
-          strerror_s(errbuffer_, 1024, rc);
-          printf("Error on unsubscribe: %s", errbuffer_ );
-        #else
-          printf("Error on unsubscribe: %s", strerror_r(rc, errbuffer_, 1024) );
-        #endif
+        int rc = mosquitto_unsubscribe(mosq_, mid, sub);
+
+        if( rc != MOSQ_ERR_SUCCESS )
+        {
+          #ifdef WIN32
+            strerror_s(errbuffer_, 1024, rc);
+            printf("Error on unsubscribe: %s", errbuffer_ );
+          #else
+            printf("Error on unsubscribe: %s", strerror_r(rc, errbuffer_, 1024) );
+          #endif
+          return -1;
+        }
+        
+        return rc;
+      }
+      else
+      {
+        std::cout << "Mosquitto not initialized!" << std::endl;
         return -1;
       }
-      
-      return rc;
     }
 
 
     int MQTTClient::publish( const void* payload, int& payload_len, const char* topic_name )
     {
-      int rc = mosquitto_publish(mosq_, NULL, topic_name, payload_len, payload, 0, false);
-      
-      if( rc != MOSQ_ERR_SUCCESS )
+      if (mosq_initialized_)
       {
-        #ifdef WIN32
-          strerror_s(errbuffer_, 1024, rc);
-          printf("Error on publish: %s", errbuffer_ );
-        #else
-          printf("Error on publish: %s", strerror_r(rc, errbuffer_, 1024) );
-        #endif
+        int rc = mosquitto_publish(mosq_, NULL, topic_name, payload_len, payload, 0, false);
+        
+        if( rc != MOSQ_ERR_SUCCESS )
+        {
+          #ifdef WIN32
+            strerror_s(errbuffer_, 1024, rc);
+            printf("Error on publish: %s", errbuffer_ );
+          #else
+            printf("Error on publish: %s", strerror_r(rc, errbuffer_, 1024) );
+          #endif
+          return -1;
+        }
+        
+        return rc;
+      }
+      else
+      {
+        std::cout << "Mosquitto not initialized!" << std::endl;
         return -1;
       }
-      
-      return rc;
     }
 
     void MQTTClient::on_connect(struct mosquitto *mosq, void *obj, int reason_code)
     {
-      if(reason_code != 0)
+      if (mosq_initialized_)
       {
-        mosquitto_disconnect(mosq);
+        if(reason_code != 0)
+        {
+          mosquitto_disconnect(mosq);
+        }
       }
+      else
+        std::cout << "Mosquitto not initialized!" << std::endl;
     }
 
     void MQTTClient::on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos)
     {
-      bool have_subscription = false;
-      for( int i=0; i<qos_count; i++)
+      if (mosq_initialized_)
       {
-        if(granted_qos[i] <= 2)
-          have_subscription = true;
-      }
+        bool have_subscription = false;
+        for( int i=0; i<qos_count; i++)
+        {
+          if(granted_qos[i] <= 2)
+            have_subscription = true;
+        }
 
-      if( have_subscription == false )
-        mosquitto_disconnect(mosq);
+        if( have_subscription == false )
+          mosquitto_disconnect(mosq);
+      }
+      else
+        std::cout << "Mosquitto not initialized!" << std::endl;
     }
 
     void MQTTClient::on_publish(struct mosquitto *mosq, void *obj, int mid)
     {
-      std::cout << "MQTTClient::on_publish" << std::flush;
-      if (true) //(encoder_ != NULL)
-      {
-        std::cout << "before on_publish" << std::endl;  
-        //encoder_->on_publish(mosq, obj, mid);
-      }
+      if (mosq_initialized_)
+        g_msg_encoder->on_publish(mosq, obj, mid);
       else
-        std::cout << "NULL pointer to MsgEncoder" << std::endl;
+        std::cout << "Mosquitto not initialized!" << std::endl;
     }
 
     void MQTTClient::on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
     {
-      std::cout << "MQTTClient::on_message" << std::flush;
-      if (decoder_ != NULL)
-      {
-        std::cout << "before on_message" << std::endl;  
-        //decoder_->on_message( mosq, obj, msg );
-      }
+      if (mosq_initialized_)
+        g_msg_decoder->on_message( mosq, obj, msg );
       else
-        std::cout << "NULL pointer to MsgDecoder" << std::endl;
+        std::cout << "Mosquitto not initialized!" << std::endl;
     }
 
   } // end namespace mqtt
