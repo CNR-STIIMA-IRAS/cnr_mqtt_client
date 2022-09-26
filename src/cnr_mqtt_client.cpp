@@ -43,9 +43,8 @@ namespace cnr
 {  
   namespace mqtt
   {
-
-    MsgDecoder* g_msg_decoder = nullptr;
-    MsgEncoder* g_msg_encoder = nullptr;
+    MsgEncoder* g_msg_encoder = NULL;
+    MsgDecoder* g_msg_decoder = NULL;
 
     bool init_library(MsgEncoder* msg_encoder, MsgDecoder* msg_decoder )
     {
@@ -58,8 +57,16 @@ namespace cnr
       return true;
     }
 
-    MQTTClient::MQTTClient( const char *id, const char *host, int port, MsgDecoder* msg_decoder, MsgEncoder* msg_encoder) 
+    MQTTClient::MQTTClient( const char *id, const char *host, int port, MsgEncoder* msg_encoder,MsgDecoder* msg_decoder)
+    //MQTTClient::MQTTClient( const char *id, const char *host, int port) 
     {
+
+      if (!cnr::mqtt::init_library( msg_encoder, msg_decoder ))
+      {
+        std::cout << "Cannot initialize the encoder and decoder library" << std::endl;
+        return;
+      }
+
       /* Required before calling other mosquitto functions */
       mosquitto_lib_init();
 
@@ -93,10 +100,6 @@ namespace cnr
         throw std::runtime_error("Error while connecting to MQTT broker.");
       }
 
-      if (!cnr::mqtt::init_library(msg_encoder, msg_decoder))
-      {
-        return;
-      }
       mosq_initialized_ = true;
 
     }
@@ -222,49 +225,33 @@ namespace cnr
 
     void MQTTClient::on_connect(struct mosquitto *mosq, void *obj, int reason_code)
     {
-      if (mosq_initialized_)
+      if(reason_code != 0)
       {
-        if(reason_code != 0)
-        {
-          mosquitto_disconnect(mosq);
-        }
+        mosquitto_disconnect(mosq);
       }
-      else
-        std::cout << "Mosquitto not initialized!" << std::endl;
     }
 
     void MQTTClient::on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos)
     {
-      if (mosq_initialized_)
+      bool have_subscription = false;
+      for( int i=0; i<qos_count; i++)
       {
-        bool have_subscription = false;
-        for( int i=0; i<qos_count; i++)
-        {
-          if(granted_qos[i] <= 2)
-            have_subscription = true;
-        }
-
-        if( have_subscription == false )
-          mosquitto_disconnect(mosq);
+        if(granted_qos[i] <= 2)
+          have_subscription = true;
       }
-      else
-        std::cout << "Mosquitto not initialized!" << std::endl;
+
+      if( have_subscription == false )
+        mosquitto_disconnect(mosq);
     }
 
     void MQTTClient::on_publish(struct mosquitto *mosq, void *obj, int mid)
     {
-      if (mosq_initialized_)
-        g_msg_encoder->on_publish(mosq, obj, mid);
-      else
-        std::cout << "Mosquitto not initialized!" << std::endl;
+      g_msg_encoder->on_publish(mosq, obj, mid);  
     }
 
     void MQTTClient::on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
     {
-      if (mosq_initialized_)
-        g_msg_decoder->on_message( mosq, obj, msg );
-      else
-        std::cout << "Mosquitto not initialized!" << std::endl;
+      g_msg_decoder->on_message( mosq, obj, msg );
     }
 
   } // end namespace mqtt

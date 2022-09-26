@@ -84,7 +84,8 @@ namespace cnr
 
     public:
       MQTTClient() = delete;
-      MQTTClient (const char *id, const char *host, int port, MsgDecoder* msg_decoder, MsgEncoder* msg_encoder );
+      MQTTClient( const char *id, const char *host, int port, MsgEncoder* msg_encoder, MsgDecoder* msg_decoder);
+      //MQTTClient (const char *id, const char *host, int port );
       ~MQTTClient();
 
       int loop();
@@ -107,7 +108,7 @@ namespace cnr
 
     };
 
-    bool init_library(MsgEncoder* msg_encoder, MsgDecoder* msg_decoder );
+    bool init_library(std::shared_ptr<MsgEncoder> msg_encoder, std::shared_ptr<MsgDecoder> msg_decoder );
   } // end mqtt namespace 
 } // end cnr namespace
 
