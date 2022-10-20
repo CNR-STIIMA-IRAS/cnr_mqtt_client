@@ -42,16 +42,56 @@ namespace cnr
   namespace mqtt
   {
     OnConnectCallbackBase* AvailableOnConnectCallbackSlots[] = {
-        new OnConnectDynamicCallback<0x00>()
+        new OnConnectDynamicCallback<0x00>(), 
+        new OnConnectDynamicCallback<0x01>(), 
+        new OnConnectDynamicCallback<0x02>(), 
+        new OnConnectDynamicCallback<0x03>(), 
+        new OnConnectDynamicCallback<0x04>(), 
+        new OnConnectDynamicCallback<0x05>(), 
+        new OnConnectDynamicCallback<0x06>(), 
+        new OnConnectDynamicCallback<0x07>(), 
+        new OnConnectDynamicCallback<0x08>(), 
+        new OnConnectDynamicCallback<0x09>(), 
+        new OnConnectDynamicCallback<0x0A>(), 
     };
     OnMessageCallbackBase* AvailableOnMessageCallbackSlots[] = {
-        new OnMessageDynamicCallback<0x00>()
+        new OnMessageDynamicCallback<0x00>(), 
+        new OnMessageDynamicCallback<0x01>(), 
+        new OnMessageDynamicCallback<0x02>(), 
+        new OnMessageDynamicCallback<0x03>(), 
+        new OnMessageDynamicCallback<0x04>(), 
+        new OnMessageDynamicCallback<0x05>(), 
+        new OnMessageDynamicCallback<0x06>(), 
+        new OnMessageDynamicCallback<0x07>(), 
+        new OnMessageDynamicCallback<0x08>(), 
+        new OnMessageDynamicCallback<0x09>(), 
+        new OnMessageDynamicCallback<0x0A>(), 
     };
     OnSubscribeCallbackBase* AvailableOnSubscribeCallbackSlots[] = {
-        new OnSubscribeDynamicCallback<0x00>()
+        new OnSubscribeDynamicCallback<0x00>(), 
+        new OnSubscribeDynamicCallback<0x01>(), 
+        new OnSubscribeDynamicCallback<0x02>(), 
+        new OnSubscribeDynamicCallback<0x03>(), 
+        new OnSubscribeDynamicCallback<0x04>(), 
+        new OnSubscribeDynamicCallback<0x05>(), 
+        new OnSubscribeDynamicCallback<0x06>(), 
+        new OnSubscribeDynamicCallback<0x07>(), 
+        new OnSubscribeDynamicCallback<0x08>(), 
+        new OnSubscribeDynamicCallback<0x09>(), 
+        new OnSubscribeDynamicCallback<0x0A>(), 
     };
     OnPublishCallbackBase* AvailableOnPublishCallbackSlots[] = {
-        new OnPublishDynamicCallback<0x00>()
+        new OnPublishDynamicCallback<0x00>(), 
+        new OnPublishDynamicCallback<0x01>(), 
+        new OnPublishDynamicCallback<0x02>(), 
+        new OnPublishDynamicCallback<0x03>(), 
+        new OnPublishDynamicCallback<0x04>(), 
+        new OnPublishDynamicCallback<0x05>(), 
+        new OnPublishDynamicCallback<0x06>(), 
+        new OnPublishDynamicCallback<0x07>(), 
+        new OnPublishDynamicCallback<0x08>(), 
+        new OnPublishDynamicCallback<0x09>(), 
+        new OnPublishDynamicCallback<0x0A>(), 
     };
 
     // ==============
@@ -70,7 +110,11 @@ namespace cnr
         if( m_pClass )
             return NULL;
 
+        if( m_pMethod != NULL )
+          return NULL;
+        
         m_pClass = instance;
+        
         m_pMethod = method;
         return m_pCCallback;
     }
@@ -96,7 +140,10 @@ namespace cnr
     { 
         if( m_pClass )
             return NULL;
-
+        
+        if( m_pMethod != NULL )
+          return NULL;
+        
         m_pClass = instance;
         m_pMethod = method;
         return m_pCCallback;
@@ -123,7 +170,10 @@ namespace cnr
     { 
         if( m_pClass )
             return NULL;
-
+        
+        if( m_pMethod != NULL )
+          return NULL;
+        
         m_pClass = instance;
         m_pMethod = method;
         return m_pCCallback;
@@ -149,7 +199,10 @@ namespace cnr
     {
         if( m_pClass )
             return NULL;
-
+        
+        if( m_pMethod != NULL )
+          return NULL;
+        
         m_pClass = instance;
         m_pMethod = method;
         return m_pCCallback;
@@ -172,9 +225,9 @@ namespace cnr
         int imax = sizeof(AvailableOnConnectCallbackSlots)/sizeof(AvailableOnConnectCallbackSlots[0]);
         for( m_nAllocIndex = 0; m_nAllocIndex < imax; ++m_nAllocIndex )
         {
-        m_cbCallback = AvailableOnConnectCallbackSlots[m_nAllocIndex]->Reserve(instance, method);
-        if( m_cbCallback != NULL )
-            break;
+          m_cbCallback = AvailableOnConnectCallbackSlots[m_nAllocIndex]->Reserve(instance, method);
+          if( m_cbCallback != NULL )
+              break;
         }
     }
     OnConnectMemberFunctionCallback::~OnConnectMemberFunctionCallback()
