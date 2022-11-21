@@ -4,10 +4,6 @@ project(cnr_mqtt_client)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_BUILD_TYPE Release)
 
-if(WIN32)
-	add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-endif()
-
 find_package(catkin REQUIRED)
 
 
