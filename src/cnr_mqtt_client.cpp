@@ -246,12 +246,12 @@ namespace cnr
 
     void MQTTClient::on_publish(struct mosquitto *mosq, void *obj, int mid)
     {
-      g_msg_encoder->on_publish(mosq, obj, mid);  
+      g_msg_encoder->on_publish(mid);  
     }
 
     void MQTTClient::on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
     {
-      g_msg_decoder->on_message( mosq, obj, msg );
+      g_msg_decoder->on_message( msg );
     }
 
   } // end namespace mqtt

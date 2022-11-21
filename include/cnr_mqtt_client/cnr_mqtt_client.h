@@ -54,7 +54,8 @@ namespace cnr
     public:
       MsgDecoder(): data_valid_(false), new_msg_available_(false) { };
       // The method should be reimplemented on the base of the application
-      virtual void on_message( struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg ) { };
+      //virtual void on_message( struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg ) { };
+      virtual void on_message( const struct mosquitto_message *msg ) { };
       bool isDataValid() {return data_valid_; };
       bool isNewMessageAvailable() { return new_msg_available_;}
       void setDataValid(const bool& data_valid) {data_valid_ = data_valid;}      
@@ -70,7 +71,7 @@ namespace cnr
     public:
       MsgEncoder() { };
       // The method should be reimplemented on the base of the application
-      virtual void on_publish(struct mosquitto *mosq, void *obj, int mid) { };
+      virtual void on_publish( int mid) { };
     };
 
     class MQTTClient 
