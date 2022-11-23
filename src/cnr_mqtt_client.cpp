@@ -112,13 +112,13 @@ namespace cnr
         std::cout << "Mosquitto not initialized!" << std::endl;
     }
 
-    int MQTTClient::loop()
+    int MQTTClient::loop(int timeout)
     {
       if (mosq_initialized_)
       {
         int rc = 0;
         /* Run the network loop in a background thread, this call returns quickly. */
-        rc = mosquitto_loop(mosq_,2000,1);
+        rc = mosquitto_loop(mosq_,timeout,1);
         if(rc != MOSQ_ERR_SUCCESS)
         {
           mosquitto_destroy(mosq_);

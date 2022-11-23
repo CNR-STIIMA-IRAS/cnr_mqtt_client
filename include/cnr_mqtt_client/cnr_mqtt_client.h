@@ -89,7 +89,7 @@ namespace cnr
       //MQTTClient (const char *id, const char *host, int port );
       ~MQTTClient();
 
-      int loop();
+      int loop(int timeout=2000);
       int stop() {return stop_raised_ = 1;}
 
       int reconnect(unsigned int reconnect_delay, unsigned int reconnect_delay_max, bool reconnect_exponential_backoff);
