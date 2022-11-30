@@ -106,13 +106,13 @@ namespace cnr
 
       typedef void (MQTTClient::*on_connect_callback)  (struct mosquitto *mosq, void *obj, int reason_code);
       typedef void (MQTTClient::*on_subscribe_callback)(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos);
-      typedef void (MQTTClient::*on_publish_callback)  (struct mosquitto *mosq, void *obj, int mid);
-      typedef void (MQTTClient::*on_message_callback)  (struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
+      typedef void (MQTTClient::*on_publish_callback)  (int index, struct mosquitto *mosq, void *obj, int mid);
+      typedef void (MQTTClient::*on_message_callback)  (int index, struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
      
       void on_connect  (struct mosquitto *mosq, void *obj, int reason_code);
       void on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos); 
-      void on_publish  (struct mosquitto *mosq, void *obj, int mid);
-      void on_message  (struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
+      void on_publish  (int index, struct mosquitto *mosq, void *obj, int mid);
+      void on_message  (int index, struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
 
     };
 

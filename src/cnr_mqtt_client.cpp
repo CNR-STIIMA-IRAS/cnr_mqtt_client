@@ -82,6 +82,7 @@ namespace cnr
         printf("Error: Out of memory.");
         throw std::runtime_error("Error: Out of memory.");
       }
+      
 
       /* Configure callbacks. This should be done before connecting ideally. */
       mosquitto_connect_callback_set(mosq_, OnConnectMemberFunctionCallback(this, &MQTTClient::on_connect));
@@ -241,16 +242,14 @@ namespace cnr
         mosquitto_disconnect(mosq);
     }
 
-    void MQTTClient::on_publish(struct mosquitto *mosq, void *obj, int mid)
+    void MQTTClient::on_publish(int index, struct mosquitto *mosq, void *obj, int mid)
     {
-      //###################### Problema qui: n_alloc_enc_dec non essendo statico o globale non può essere usato nel metodo statico
-      g_msg_encoder[n_alloc_enc_dec]->on_publish(mid);  
+      g_msg_encoder[index]->on_publish(mid);  
     }
 
-    void MQTTClient::on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
+    void MQTTClient::on_message(int index, struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
     {
-      //###################### Problema qui: n_alloc_enc_dec non essendo statico o globale non può essere usato nel metodo statico
-      g_msg_decoder[n_alloc_enc_dec]->on_message( msg );
+      g_msg_decoder[index]->on_message( msg );
     }
 
   } // end namespace mqtt

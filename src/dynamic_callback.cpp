@@ -148,7 +148,7 @@ namespace cnr
     void OnMessageCallbackBase::StaticInvoke(int context, struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
     {
         auto p = (AvailableOnMessageCallbackSlots[context]->m_pClass); 
-        return (p->*(AvailableOnMessageCallbackSlots[context]->m_pMethod)) (mosq, obj, msg);
+        return (p->*(AvailableOnMessageCallbackSlots[context]->m_pMethod)) (context, mosq, obj, msg);
     }
 
     // ==============
@@ -207,7 +207,7 @@ namespace cnr
     void OnPublishCallbackBase::StaticInvoke(int context, struct mosquitto *mosq, void *obj, int mid)
     {
         auto p = (AvailableOnPublishCallbackSlots[context]->m_pClass);
-        return (p->*(AvailableOnPublishCallbackSlots[context]->m_pMethod)) (mosq, obj, mid);
+        return (p->*(AvailableOnPublishCallbackSlots[context]->m_pMethod)) (context, mosq, obj, mid);
     }
 
     // ***********
