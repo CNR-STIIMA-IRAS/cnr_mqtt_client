@@ -52,7 +52,6 @@ namespace cnr
         new OnConnectDynamicCallback<0x07>(), 
         new OnConnectDynamicCallback<0x08>(), 
         new OnConnectDynamicCallback<0x09>(), 
-        new OnConnectDynamicCallback<0x0A>(), 
     };
     OnMessageCallbackBase* AvailableOnMessageCallbackSlots[] = {
         new OnMessageDynamicCallback<0x00>(), 
@@ -65,7 +64,6 @@ namespace cnr
         new OnMessageDynamicCallback<0x07>(), 
         new OnMessageDynamicCallback<0x08>(), 
         new OnMessageDynamicCallback<0x09>(), 
-        new OnMessageDynamicCallback<0x0A>(), 
     };
     OnSubscribeCallbackBase* AvailableOnSubscribeCallbackSlots[] = {
         new OnSubscribeDynamicCallback<0x00>(), 
@@ -78,7 +76,6 @@ namespace cnr
         new OnSubscribeDynamicCallback<0x07>(), 
         new OnSubscribeDynamicCallback<0x08>(), 
         new OnSubscribeDynamicCallback<0x09>(), 
-        new OnSubscribeDynamicCallback<0x0A>(), 
     };
     OnPublishCallbackBase* AvailableOnPublishCallbackSlots[] = {
         new OnPublishDynamicCallback<0x00>(), 
@@ -91,7 +88,6 @@ namespace cnr
         new OnPublishDynamicCallback<0x07>(), 
         new OnPublishDynamicCallback<0x08>(), 
         new OnPublishDynamicCallback<0x09>(), 
-        new OnPublishDynamicCallback<0x0A>(), 
     };
 
     // ==============
@@ -152,7 +148,7 @@ namespace cnr
     void OnMessageCallbackBase::StaticInvoke(int context, struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
     {
         auto p = (AvailableOnMessageCallbackSlots[context]->m_pClass); 
-        return (p->*(AvailableOnMessageCallbackSlots[context]->m_pMethod)) (mosq, obj, msg);
+        return (p->*(AvailableOnMessageCallbackSlots[context]->m_pMethod)) (context, mosq, obj, msg);
     }
 
     // ==============
@@ -211,7 +207,7 @@ namespace cnr
     void OnPublishCallbackBase::StaticInvoke(int context, struct mosquitto *mosq, void *obj, int mid)
     {
         auto p = (AvailableOnPublishCallbackSlots[context]->m_pClass);
-        return (p->*(AvailableOnPublishCallbackSlots[context]->m_pMethod)) (mosq, obj, mid);
+        return (p->*(AvailableOnPublishCallbackSlots[context]->m_pMethod)) (context, mosq, obj, mid);
     }
 
     // ***********

@@ -37,6 +37,7 @@
 #ifndef __CNR_MQTT_CLIENT__
 #define __CNR_MQTT_CLIENT__
 
+#include <mutex>
 #include <string>
 #include <cstring>
 #include <cstdio>
@@ -64,6 +65,9 @@ namespace cnr
     private:
       bool data_valid_;
       bool new_msg_available_;
+    
+    public:
+      std::mutex mtx_;
     };
 
     class MsgEncoder
@@ -74,6 +78,8 @@ namespace cnr
       virtual void on_publish( int mid) { };
     };
 
+    int init_library(MsgEncoder* msg_encoder, MsgDecoder* msg_decoder );
+
     class MQTTClient 
     {
     private: 
@@ -82,11 +88,12 @@ namespace cnr
       int stop_raised_ = 0; 
       char errbuffer_[1024] = {0};
       bool mosq_initialized_ = false;
+      int n_alloc_enc_dec = -1;
+      
 
     public:
       MQTTClient() = delete;
       MQTTClient( const char *id, const char *host, int port, MsgEncoder* msg_encoder, MsgDecoder* msg_decoder);
-      //MQTTClient (const char *id, const char *host, int port );
       ~MQTTClient();
 
       int loop(int timeout=2000);
@@ -99,17 +106,16 @@ namespace cnr
 
       typedef void (MQTTClient::*on_connect_callback)  (struct mosquitto *mosq, void *obj, int reason_code);
       typedef void (MQTTClient::*on_subscribe_callback)(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos);
-      typedef void (MQTTClient::*on_publish_callback)  (struct mosquitto *mosq, void *obj, int mid);
-      typedef void (MQTTClient::*on_message_callback)  (struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
+      typedef void (MQTTClient::*on_publish_callback)  (int index, struct mosquitto *mosq, void *obj, int mid);
+      typedef void (MQTTClient::*on_message_callback)  (int index, struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
      
       void on_connect  (struct mosquitto *mosq, void *obj, int reason_code);
       void on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos); 
-      void on_publish  (struct mosquitto *mosq, void *obj, int mid);
-      void on_message  (struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
+      void on_publish  (int index, struct mosquitto *mosq, void *obj, int mid);
+      void on_message  (int index, struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
 
     };
 
-    bool init_library(std::shared_ptr<MsgEncoder> msg_encoder, std::shared_ptr<MsgDecoder> msg_decoder );
   } // end mqtt namespace 
 } // end cnr namespace
 
