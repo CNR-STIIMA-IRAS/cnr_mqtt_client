@@ -61,7 +61,7 @@ namespace cnr
 
     MQTTClient::MQTTClient( const char *id, const char *host, int port, MsgEncoder* msg_encoder,MsgDecoder* msg_decoder)
     {
-      if (msg_encoder || msg_decoder == NULL)
+      if (msg_encoder && msg_decoder == NULL)
       {
         std::cout << "NULL ptr to encoder and/or decoder library" << std::endl;
         return;
@@ -128,14 +128,14 @@ namespace cnr
         rc = mosquitto_loop(mosq_,timeout,1);
         if(rc != MOSQ_ERR_SUCCESS)
         {
-          mosquitto_destroy(mosq_);
+          //mosquitto_destroy(mosq_);
           #ifdef WIN32
             strerror_s(errbuffer_, 1024, rc);
             printf("Error in loop: %s", errbuffer_ );
           #else
             printf("Error in loop: %s", strerror_r(rc, errbuffer_, 1024) );
           #endif
-          return -1;
+          //return -1;
         }
         return rc;
       }
