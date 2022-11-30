@@ -61,13 +61,17 @@ namespace cnr
 
     MQTTClient::MQTTClient( const char *id, const char *host, int port, MsgEncoder* msg_encoder,MsgDecoder* msg_decoder)
     {
-      if (msg_encoder && msg_decoder == NULL)
+      if (msg_encoder || msg_decoder == NULL)
+      {
+        std::cout << "NULL ptr to encoder and/or decoder library" << std::endl;
+        return;
+      }
+
+      if (cnr::mqtt::init_library( msg_encoder, msg_decoder ) < 0)
       {
         std::cout << "Cannot initialize the encoder and decoder library" << std::endl;
         return;
       }
-
-      n_alloc_enc_dec = cnr::mqtt::init_library( msg_encoder, msg_decoder );
 
       /* Required before calling other mosquitto functions */
       mosquitto_lib_init();
