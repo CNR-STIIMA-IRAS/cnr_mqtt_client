@@ -88,9 +88,7 @@ namespace cnr
       int stop_raised_ = 0; 
       char errbuffer_[1024] = {0};
       bool mosq_initialized_ = false;
-      int n_alloc_enc_dec = -1;
-      
-
+    
     public:
       MQTTClient() = delete;
       MQTTClient( const char *id, const char *host, int port, MsgEncoder* msg_encoder, MsgDecoder* msg_decoder);
