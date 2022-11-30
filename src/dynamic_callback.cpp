@@ -52,7 +52,6 @@ namespace cnr
         new OnConnectDynamicCallback<0x07>(), 
         new OnConnectDynamicCallback<0x08>(), 
         new OnConnectDynamicCallback<0x09>(), 
-        new OnConnectDynamicCallback<0x0A>(), 
     };
     OnMessageCallbackBase* AvailableOnMessageCallbackSlots[] = {
         new OnMessageDynamicCallback<0x00>(), 
@@ -65,7 +64,6 @@ namespace cnr
         new OnMessageDynamicCallback<0x07>(), 
         new OnMessageDynamicCallback<0x08>(), 
         new OnMessageDynamicCallback<0x09>(), 
-        new OnMessageDynamicCallback<0x0A>(), 
     };
     OnSubscribeCallbackBase* AvailableOnSubscribeCallbackSlots[] = {
         new OnSubscribeDynamicCallback<0x00>(), 
@@ -78,7 +76,6 @@ namespace cnr
         new OnSubscribeDynamicCallback<0x07>(), 
         new OnSubscribeDynamicCallback<0x08>(), 
         new OnSubscribeDynamicCallback<0x09>(), 
-        new OnSubscribeDynamicCallback<0x0A>(), 
     };
     OnPublishCallbackBase* AvailableOnPublishCallbackSlots[] = {
         new OnPublishDynamicCallback<0x00>(), 
@@ -91,7 +88,6 @@ namespace cnr
         new OnPublishDynamicCallback<0x07>(), 
         new OnPublishDynamicCallback<0x08>(), 
         new OnPublishDynamicCallback<0x09>(), 
-        new OnPublishDynamicCallback<0x0A>(), 
     };
 
     // ==============

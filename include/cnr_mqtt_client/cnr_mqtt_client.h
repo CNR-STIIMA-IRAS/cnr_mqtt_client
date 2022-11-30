@@ -37,6 +37,7 @@
 #ifndef __CNR_MQTT_CLIENT__
 #define __CNR_MQTT_CLIENT__
 
+#include <mutex>
 #include <string>
 #include <cstring>
 #include <cstdio>
@@ -64,6 +65,9 @@ namespace cnr
     private:
       bool data_valid_;
       bool new_msg_available_;
+    
+    public:
+      std::mutex mtx_;
     };
 
     class MsgEncoder
@@ -74,6 +78,8 @@ namespace cnr
       virtual void on_publish( int mid) { };
     };
 
+    int init_library(MsgEncoder* msg_encoder, MsgDecoder* msg_decoder );
+
     class MQTTClient 
     {
     private: 
@@ -82,11 +88,12 @@ namespace cnr
       int stop_raised_ = 0; 
       char errbuffer_[1024] = {0};
       bool mosq_initialized_ = false;
+      int n_alloc_enc_dec = -1;
+      
 
     public:
       MQTTClient() = delete;
       MQTTClient( const char *id, const char *host, int port, MsgEncoder* msg_encoder, MsgDecoder* msg_decoder);
-      //MQTTClient (const char *id, const char *host, int port );
       ~MQTTClient();
 
       int loop(int timeout=2000);
@@ -109,7 +116,6 @@ namespace cnr
 
     };
 
-    bool init_library(std::shared_ptr<MsgEncoder> msg_encoder, std::shared_ptr<MsgDecoder> msg_decoder );
   } // end mqtt namespace 
 } // end cnr namespace
 

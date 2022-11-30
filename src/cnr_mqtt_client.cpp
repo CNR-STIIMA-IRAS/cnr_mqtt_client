@@ -39,33 +39,35 @@
 #include <cnr_mqtt_client/cnr_mqtt_client.h>
 #include <cnr_mqtt_client/dynamic_callback.h>
 
+#define MAX_NUM_ENC_DEC 10
 namespace cnr
 {  
   namespace mqtt
   {
-    MsgEncoder* g_msg_encoder = NULL;
-    MsgDecoder* g_msg_decoder = NULL;
+    static int enc_dec_counter = 0;
+    MsgEncoder* g_msg_encoder[MAX_NUM_ENC_DEC];
+    MsgDecoder* g_msg_decoder[MAX_NUM_ENC_DEC];
 
-    bool init_library(MsgEncoder* msg_encoder, MsgDecoder* msg_decoder )
+    int init_library(MsgEncoder* msg_encoder, MsgDecoder* msg_decoder )
     {
-      if(msg_encoder && msg_decoder == NULL )
-        return false;
-      
-      g_msg_encoder = msg_encoder;
-      g_msg_decoder = msg_decoder;
-      
-      return true;
+      if ( enc_dec_counter < MAX_NUM_ENC_DEC)
+      {
+        g_msg_encoder[enc_dec_counter] = msg_encoder;
+        g_msg_decoder[enc_dec_counter] = msg_decoder;
+        return enc_dec_counter++;
+      }
+      return -1;
     }
 
     MQTTClient::MQTTClient( const char *id, const char *host, int port, MsgEncoder* msg_encoder,MsgDecoder* msg_decoder)
-    //MQTTClient::MQTTClient( const char *id, const char *host, int port) 
     {
-
-      if (!cnr::mqtt::init_library( msg_encoder, msg_decoder ))
+      if (msg_encoder && msg_decoder == NULL)
       {
         std::cout << "Cannot initialize the encoder and decoder library" << std::endl;
         return;
       }
+
+      n_alloc_enc_dec = cnr::mqtt::init_library( msg_encoder, msg_decoder );
 
       /* Required before calling other mosquitto functions */
       mosquitto_lib_init();
@@ -241,12 +243,14 @@ namespace cnr
 
     void MQTTClient::on_publish(struct mosquitto *mosq, void *obj, int mid)
     {
-      g_msg_encoder->on_publish(mid);  
+      //###################### Problema qui: n_alloc_enc_dec non essendo statico o globale non può essere usato nel metodo statico
+      g_msg_encoder[n_alloc_enc_dec]->on_publish(mid);  
     }
 
     void MQTTClient::on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
     {
-      g_msg_decoder->on_message( msg );
+      //###################### Problema qui: n_alloc_enc_dec non essendo statico o globale non può essere usato nel metodo statico
+      g_msg_decoder[n_alloc_enc_dec]->on_message( msg );
     }
 
   } // end namespace mqtt
