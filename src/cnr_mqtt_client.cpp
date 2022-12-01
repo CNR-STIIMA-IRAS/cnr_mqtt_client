@@ -94,7 +94,7 @@ namespace cnr
       mosquitto_message_callback_set(mosq_, OnMessageMemberFunctionCallback(this, &MQTTClient::on_message));
       mosquitto_publish_callback_set(mosq_, OnPublishMemberFunctionCallback(this, &MQTTClient::on_publish));
 
-      int rc = mosquitto_connect(mosq_, host, port, 60);
+      int rc = mosquitto_connect(mosq_, host, port, 600);
       if( rc != MOSQ_ERR_SUCCESS )
       {
         mosquitto_destroy(mosq_);
@@ -128,14 +128,12 @@ namespace cnr
         rc = mosquitto_loop(mosq_,timeout,1);
         if(rc != MOSQ_ERR_SUCCESS)
         {
-          //mosquitto_destroy(mosq_);
           #ifdef WIN32
             strerror_s(errbuffer_, 1024, rc);
             printf("Error in loop: %s", errbuffer_ );
           #else
             printf("Error in loop: %s", strerror_r(rc, errbuffer_, 1024) );
           #endif
-          //return -1;
         }
         return rc;
       }
@@ -164,7 +162,6 @@ namespace cnr
             printf("Error on subscribe: %s", strerror_r(rc, errbuffer_, 1024) );
           #endif
           mosquitto_disconnect(mosq_);
-          return -1;
         }
         return rc;
       }
@@ -188,7 +185,6 @@ namespace cnr
           #else
             printf("Error on unsubscribe: %s", strerror_r(rc, errbuffer_, 1024) );
           #endif
-          return -1;
         }
         
         return rc;
@@ -214,7 +210,6 @@ namespace cnr
           #else
             printf("Error on publish: %s", strerror_r(rc, errbuffer_, 1024) );
           #endif
-          return -1;
         }
         
         return rc;
