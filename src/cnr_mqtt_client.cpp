@@ -44,7 +44,7 @@ namespace cnr
 {  
   namespace mqtt
   {
-    static int enc_dec_counter = 0;
+    int enc_dec_counter = 0;
     MsgEncoder* g_msg_encoder[MAX_NUM_ENC_DEC];
     MsgDecoder* g_msg_decoder[MAX_NUM_ENC_DEC];
 
@@ -143,9 +143,25 @@ namespace cnr
 
     }
 
-    int MQTTClient::reconnect(unsigned int reconnect_delay, unsigned int reconnect_delay_max, bool reconnect_exponential_backoff)
+    int MQTTClient::reconnect()
     {
-      return -1; //mosquitto_reconnect_delay_set(mosq,reconnect_delay, reconnect_delay_max, reconnect_exponential_backoff);
+      if (mosq_initialized_)
+      {
+        int rc = mosquitto_reconnect(mosq_);
+        if(rc != MOSQ_ERR_SUCCESS)
+        {
+          #ifdef WIN32
+            strerror_s(errbuffer_, 1024, rc);
+            printf("Error on subscribe: %s", errbuffer_ );
+          #else
+            printf("Error on subscribe: %s", strerror_r(rc, errbuffer_, 1024) );
+          #endif
+        }
+        return rc;
+      }
+
+      std::cout << "Mosquitto not initialized!" << std::endl;
+      return -1; 
     }
         
     int MQTTClient::subscribe(int *mid, const char *sub, int qos)
@@ -161,7 +177,6 @@ namespace cnr
           #else
             printf("Error on subscribe: %s", strerror_r(rc, errbuffer_, 1024) );
           #endif
-          mosquitto_disconnect(mosq_);
         }
         return rc;
       }
