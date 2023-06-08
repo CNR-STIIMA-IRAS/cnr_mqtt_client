@@ -67,7 +67,7 @@ namespace cnr
       bool new_msg_available_;
     
     public:
-      std::mutex mtx_;
+      std::timed_mutex mtx_;
     };
 
     class MsgEncoder
