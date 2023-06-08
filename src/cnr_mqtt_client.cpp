@@ -115,8 +115,8 @@ namespace cnr
     {   
       if(mosq_initialized_)
         mosquitto_lib_cleanup();
-      else
-        std::cout << "Mosquitto not initialized!" << std::endl;
+      
+      throw std::runtime_error("Mosquitto not initialized.");
     }
 
     int MQTTClient::loop(int timeout)
@@ -138,9 +138,7 @@ namespace cnr
         return rc;
       }
 
-      std::cout << "Mosquitto not initialized!" << std::endl;
-      return -1;
-
+      throw std::runtime_error("Mosquitto not initialized.");
     }
 
     int MQTTClient::reconnect()
@@ -160,8 +158,7 @@ namespace cnr
         return rc;
       }
 
-      std::cout << "Mosquitto not initialized!" << std::endl;
-      return -1; 
+      throw std::runtime_error("Mosquitto not initialized.");
     }
         
     int MQTTClient::subscribe(int *mid, const char *sub, int qos)
@@ -181,8 +178,7 @@ namespace cnr
         return rc;
       }
 
-      std::cout << "Mosquitto not initialized!" << std::endl;
-      return -1;
+      throw std::runtime_error("Mosquitto not initialized.");
     }
 
 
@@ -205,9 +201,7 @@ namespace cnr
         return rc;
       }
 
-      std::cout << "Mosquitto not initialized!" << std::endl;
-      return -1;
-
+      throw std::runtime_error("Mosquitto not initialized.");
     }
 
 
@@ -230,9 +224,7 @@ namespace cnr
         return rc;
       }
 
-      std::cout << "Mosquitto not initialized!" << std::endl;
-      return -1;
-
+      throw std::runtime_error("Mosquitto not initialized.");
     }
 
     void MQTTClient::on_connect(struct mosquitto *mosq, void *obj, int reason_code)
