@@ -43,7 +43,7 @@
 #include <cstdio>
 #include <iostream>
 #include <memory>
-#include <mosquitto.h>
+//#include <mosquitto.h>
 
 
 namespace cnr

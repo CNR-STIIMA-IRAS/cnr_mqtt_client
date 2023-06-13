@@ -1,0 +1,14 @@
+# - Config file for the cnr_mqtt_client package
+# It defines the following variables
+#  cnr_mqtt_client_INCLUDE_DIRS - include directories for FooBar
+#  cnr_mqtt_client_LIBRARIES    - libraries to link against
+#  cnr_mqtt_client_EXECUTABLE   - the bar executable
+
+set(cnr_mqtt_client_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+
+# Our library dependencies (contains definitions for IMPORTED targets)
+include("${cnr_mqtt_client_DIR}/export_cnr_mqtt_client.cmake")
+
+# These are IMPORTED targets created by cnr_mqtt_clientTargets.cmake
+set(cnr_mqtt_client_LIBRARIES cnr_mqtt_client)
+
