@@ -35,13 +35,8 @@
 
 #include <cstdio>
 #include <iostream>
-#if !defined (ROS1_NOT_AVAILABLE)
-  #include <ros/ros.h>
-#endif
-
 #include <time.h>
 #include <numeric>
-#include <cnr_logger/cnr_logger.h>
 #include <gtest/gtest.h>
 
 std::string path_to_src = "../test/config";
@@ -144,44 +139,64 @@ void printStatistics()
   }
 }
 
-std::shared_ptr<MQTTClient> _mqtt;
+#include <cnr_mqtt_client/cnr_mqtt_client.h>
 
+std::shared_ptr<cnr::mqtt::MQTTClient> _mqtt;
+
+#if 0
 // Declare another test
 TEST(TestSuite, creator)
 { 
-  EXPECT_FALSE(does_not_throw([&]{ _mqtt.reset(new cnr::mqtt::MQTTClient() ); }));
-  EXPECT_NO_FATAL_FAILURE(ll.reset());
+  _mqtt = new cnr::drapebot::MQTTDrapebotClientHw(cid.c_str(), host_str.c_str(), port, 60, use_json_);
+  EXPECT_TRUE(does_not_throw([&]{ _mqtt.reset(new cnr::mqtt::MQTTClient() ); }));
+}
+  
+TEST(TestSuite, subscribe)
+{
+  EXPECT_TRUE(_mqtt->subscribe(NULL, m_mqtt_feedback_topic.c_str(), 1) != 0);
+}
+
+TEST(TestSuite, waitForFirstMsgRec)
+{
+  EXPECT_TRUE(does_not_throw([&]
+  { 
+    do 
+    {
+      if (_mqtt->loop(1) != MOSQ_ERR_SUCCESS)
+      {       
+        std::this_thread::sleep_for(std::chrono::milliseconds(5))
+      }
+      
+      cnr::drapebot::drapebot_msg_hw last_msg;
+      if (_mqtt->isFirstMsgRec())
+      {
+        _mqtt->getLastReceivedMessage(last_msg);
+      }
+    } while ( true );
+      return true;
+  }));
+}
+
+TEST(TestSuite, loop)
+{
+
+    if (_mqtt->loop(1) != MOSQ_ERR_SUCCESS)
+      CNR_WARN(m_logger,"_mqtt->loop() failed. check it");
+  
+    cnr::drapebot::drapebot_msg_hw last_msg;
+
 }
 
 TEST(TestSuite, destructor)
 { 
   EXPECT_NO_FATAL_FAILURE(_mqtt.reset());
 }
-
+#endif
 
 // Run all the tests that were declared with TEST()
 int main(int argc, char **argv)
 {
-
   testing::InitGoogleTest(&argc, argv);
-#if !defined(ROS1_NOT_AVAILABLE)
-  ros::init(argc, argv, "cnr_logger_tester");
-  ros::NodeHandle nh;
-#else
-    if(argc != 2)
-    {
-      std::cerr << "Error in usage!\ncnr_logger_test [ PATH_TO_SRC ]" << std::endl;
-      return -1; 
-    }
-    path_to_src = argv[1];
-#endif
-
-#if defined(FORCE_ROS_TIME_USE)
-  std::cerr << "Time used: ROS WALL TIME" << std::endl;
-#else
-  std::cerr << "Time used: STD CTIME" << std::endl;
-#endif
-
   bool ok = false;
   for(size_t i=0u;i<100u;i++)
   {

@@ -53,14 +53,17 @@ namespace cnr
     class MsgDecoder
     {
     public:
-      MsgDecoder(): data_valid_(false), new_msg_available_(false) { };
+      MsgDecoder();
+      MsgDecoder(const MsgDecoder&) = delete;
+      MsgDecoder(MsgDecoder&&) = delete;
+      virtual ~MsgDecoder() = default;
       // The method should be reimplemented on the base of the application
       //virtual void on_message( struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg ) { };
-      virtual void on_message( const struct mosquitto_message *msg ) { };
-      bool isDataValid() {return data_valid_; };
-      bool isNewMessageAvailable() { return new_msg_available_;}
-      void setDataValid(const bool& data_valid) {data_valid_ = data_valid;}      
-      void setNewMessageAvailable(const bool& new_msg_available) {new_msg_available_ = new_msg_available;}
+      virtual void on_message( const struct mosquitto_message *msg );
+      bool isDataValid();
+      bool isNewMessageAvailable();
+      void setDataValid(const bool& data_valid);
+      void setNewMessageAvailable(const bool& new_msg_available);
 
     private:
       bool data_valid_;
@@ -73,9 +76,12 @@ namespace cnr
     class MsgEncoder
     {
     public:
-      MsgEncoder() { };
+      MsgEncoder() = default;
+      MsgEncoder(const MsgEncoder&) = delete;
+      MsgEncoder(MsgEncoder&&) = delete;
+      virtual ~MsgEncoder() = default;
       // The method should be reimplemented on the base of the application
-      virtual void on_publish( int mid) { };
+      virtual void on_publish( int mid);
     };
 
     int init_library(MsgEncoder* msg_encoder, MsgDecoder* msg_decoder );
@@ -92,7 +98,7 @@ namespace cnr
     public:
       MQTTClient() = delete;
       MQTTClient( const char *id, const char *host, int port, MsgEncoder* msg_encoder, MsgDecoder* msg_decoder);
-      ~MQTTClient();
+      virtual ~MQTTClient();
 
       int loop(int timeout=2000);
       int stop() {return stop_raised_ = 1;}
@@ -100,7 +106,7 @@ namespace cnr
       int reconnect();
       int subscribe(int *mid, const char *sub, int qos=0);
       int unsubscribe(int *mid, const char *sub);
-      int publish(const void* payload, int& payload_len, const char* topic_name);
+      int publish(const void* payload, int payload_len, const char* topic_name);
 
       typedef void (MQTTClient::*on_connect_callback)  (struct mosquitto *mosq, void *obj, int reason_code);
       typedef void (MQTTClient::*on_subscribe_callback)(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos);

@@ -24,7 +24,7 @@ cnr_set_flags()
 option(USE_ROS1                 "ROS SUPPORT" ON)
 option(ENABLE_TESTING           "ENABLE TESTING" OFF)
 option(ENABLE_COVERAGE_TESTING  "ENABLE COVERAGE TESTING" ON)
-option(COMPILE_EXAMPLE          "COMPILE THE EXAMPLE" OFF)
+option(BUILD_EXAMPLE            "COMPILE THE EXAMPLE" OFF)
 
 if(USE_ROS1)
   set(ENABLE_TESTING ${CATKIN_ENABLE_TESTING})
@@ -42,11 +42,9 @@ pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
 
 if(USE_ROS1)
   find_package(catkin REQUIRED)
-
   catkin_package(
     INCLUDE_DIRS include
     LIBRARIES cnr_mqtt_client
-    DEPENDS mosquitto
   )
 endif()
 
@@ -74,13 +72,13 @@ list(APPEND BUILD_INTERFACE_INCLUDE_DIRS ${DEPENDENCIES_INCLUDE_DIRS} ${CMAKE_CU
 list(APPEND INSTALL_INTERFACE_INCLUDE_DIRS include ${DEPENDENCIES_INCLUDE_DIRS} include)
 
 if(USE_ROS1)
-  list(APPEND DEPENDENCIES_LIBRARIES ${catkin_LIBRARIES})
+  list(APPEND DEPENDENCIES_LIBRARIES ${catkin_LIBRARIES} )
 
   if(WIN32)
     list(APPEND DEPENDENCIES_LIBRARIES "C:\\ws\\mosquitto-build\\lib\\")
   endif()
 else()
-list(APPEND DEPENDENCIES_LIBRARIES PkgConfig::Mosquitto)
+list(APPEND DEPENDENCIES_LIBRARIES )
 endif()
 
 # ================================================
@@ -91,7 +89,12 @@ target_include_directories(${PROJECT_NAME}  PUBLIC
   "$<BUILD_INTERFACE:${BUILD_INTERFACE_INCLUDE_DIRS}>"
     "$<INSTALL_INTERFACE:${INSTALL_INTERFACE_INCLUDE_DIRS}>")
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${DEPENDENCIES_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC PkgConfig::Mosquitto)
+
+if(BUILD_EXAMPLE)
+  add_executable(cnr_mqtt_client_example example/example.cpp)
+  target_link_libraries(cnr_mqtt_client_example PUBLIC ${PROJECT_NAME})
+endif()
 
 #################
 ## END - Build ##
@@ -107,7 +110,7 @@ install(DIRECTORY include/${PROJECT_NAME}
         PATTERN ".git" EXCLUDE
 )
 
-install(TARGETS cnr_mqtt_client
+install(TARGETS cnr_mqtt_client cnr_mqtt_client_example
         EXPORT export_cnr_mqtt_client
         ARCHIVE DESTINATION ${CNR_INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${CNR_INSTALL_LIB_DIR}
@@ -159,10 +162,8 @@ endif()
 ##########################
 if(ENABLE_TESTING)
   include(GoogleTest)
-  add_executable(cnr_mqtt_client_test
-    src/test/test.cpp)
-  target_link_libraries(cnr_mqtt_client_test cnr_mqtt_client
-        Threads::Threads GTest::gtest_main Boost::program_options Boost::system Boost::filesystem Boost::iostreams Boost::regex)
+  add_executable(cnr_mqtt_client_test test/test.cpp)
+  target_link_libraries(cnr_mqtt_client_test cnr_mqtt_client Threads::Threads GTest::gtest_main)
   target_compile_definitions(cnr_mqtt_client_test PRIVATE TEST_DIR="${CMAKE_CURRENT_LIST_DIR}/test")  
   gtest_discover_tests(cnr_mqtt_client_test)
  endif(ENABLE_TESTING)
