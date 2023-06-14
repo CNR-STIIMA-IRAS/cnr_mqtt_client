@@ -1,10 +1,10 @@
-#include<unistd.h>
+#include <unistd.h>
 #include <iostream>
 #include <vector>
 #include <string>
 #include <chrono>
 #include <thread>
- 
+
 #include "json.hpp"
 #include <cnr_mqtt_client/cnr_mqtt_client.h>
 
@@ -31,13 +31,16 @@ void vec_to_msg(const std::vector<double>& v, my_msg* msg)
   std::memcpy(msg->data, v.data(), 7 * sizeof(double));
 }
 
-auto now() { return std::chrono::steady_clock::now(); }
- 
-auto awake_time() {
-    using std::chrono::operator""ms;
-    return now() + 4ms;
+auto now()
+{
+  return std::chrono::steady_clock::now();
 }
- 
+
+auto awake_time()
+{
+  using std::chrono::operator""ms;
+  return now() + 4ms;
+}
 
 class MyMsgDecoder : public cnr::mqtt::MsgDecoder
 {
@@ -53,7 +56,7 @@ public:
   {
     if (use_json_)
     {
-      char *buf = new char[msg->payloadlen];
+      char* buf = new char[msg->payloadlen];
       memcpy(&buf[0], msg->payload, msg->payloadlen);
 
       std::string buf_str(buf);
@@ -227,7 +230,7 @@ public:
       std::cerr << "MyClient::publish_with_tracking returned code:" << rc << std::endl;
   }
 
-  bool getLastReceivedMessage(my_msg& last_feedback_msg)
+  bool getLastReceivedMessage(my_msg& feedback)
   {
     if (my_msg_decoder_ != NULL)
     {
@@ -239,7 +242,7 @@ public:
 
       if (my_msg_decoder_->mtx_.try_lock_for(std::chrono::milliseconds(2)))
       {
-        std::memcpy(&last_feedback_msg.data, msg_dec_->data, sizeof(my_msg));
+        std::memcpy(&feedback.data, msg_dec_->data, sizeof(my_msg));
 
         my_msg_decoder_->mtx_.unlock();
         return true;
@@ -324,76 +327,126 @@ int main()
   else if (c_pid > 0)
   {
     auto cl = new MyClient(nullptr, "localhost", 1883);
-    std::cout << "***** Parent Process ******" << getpid() << std::endl;
+    std::cout << "***** Parent Process ****** CLIENT1 ****** PID: " << getpid() << std::endl;
     if (cl->subscribe(NULL, "/feedback", 1) != 0)
     {
-      std::cerr << "Error on Mosquitto subscribe topic: /feedback" << std::endl;
+      std::cerr << "CLIENT1 Error on Mosquitto subscribe topic: /feedback" << std::endl;
       return -1;
     }
 
-    my_msg m;
-    my_msg last_feedback_msg;
+    my_msg cmd_sent;
+    my_msg feedback_recv;
     std::size_t cnt = 0;
-    while (1)
+    while (true)
     {
-      const auto start {now()};
-      cl->publish_with_tracking("/command", m);
+      cnt++;
+      int delay = 0;
+      const auto start{ now() };
+      cl->publish_with_tracking("/command", cmd_sent);
 
       if (cl->loop(1) != MOSQ_ERR_SUCCESS)
       {
-        std::cerr << "loop() failed. check it" << std::endl;
+        std::cerr << "CLIENT1 loop() failed. check it" << std::endl;
       }
 
-      if (cl->getLastReceivedMessage(last_feedback_msg))
+      if (cl->getLastReceivedMessage(feedback_recv))
       {
-        if(!cl->isFirstMsgRec())
+        if (!cl->isFirstMsgRec())
         {
-          std::cout << "First Message not yet recevied! "  << std::endl;
+          std::cout << "CLIENT1 First Message not yet recevied! " << std::endl;
         }
         else
         {
-          if(cnt++ % 1000 == 0)
+          if (cnt % 250 == 0)
           {
-            std::cout << "RECEIVER Time from while(1) start [ms]: " << last_feedback_msg.msg.count * 4 << std::endl;
           }
-          
-          int delay = std::fabs(cl->get_msg_count_cmd() - last_feedback_msg.msg.count);
+
+          delay = std::fabs(cl->get_msg_count_cmd() - feedback_recv.msg.count);
           if (delay > maximum_missing_cycle)
           {
-            std::cerr << "delay: " << delay << " exceeds maximum missing cycle ( " << maximum_missing_cycle
-                                        << " ) . command: " << cl->get_msg_count_cmd()
-                                        << ", feedback: " << last_feedback_msg.msg.count << std::endl;
+            std::cerr << "CLIENT1 delay: " << delay << " exceeds maximum missing cycle ( " << maximum_missing_cycle
+                      << " ) . command: " << cl->get_msg_count_cmd() << ", feedback: " << feedback_recv.msg.count
+                      << std::endl;
           }
         }
       }
       else
       {
-        std::cerr << "No new MQTT feedback message available OR first message not received yet... not good, topic: /feedback" ;
+        std::cerr << "CLIENT1 No new MQTT feedback message available OR first message not received yet... not good, "
+                     "topic: /feedback";
       }
-      cl->publish(last_feedback_msg.data, sizeof(my_msg), "/degub_feedback");
+      // cl->publish(feedback.data, sizeof(my_msg), "/degub_feedback");
 
-      
       std::this_thread::sleep_until(awake_time());
-      std::chrono::duration<double, std::milli> elapsed {now() - start};
+      std::chrono::duration<double, std::milli> elapsed{ now() - start };
+      if (cnt % 250 == 0)
+      {
+        std::cout << "CLIENT1 SENDER [ms]: " << cmd_sent.msg.count * 4
+                  << " RECEIVER  [ms]: " << feedback_recv.msg.count * 4 << "\tDelay [ms]: " << delay * 4
+                  << std::endl;
+      }
     }
   }
   else
   {
-    auto cl = new MyClient(nullptr, "localhost", 1883);
-    std::cout << "***** Child Process ******" << getpid() << std::endl;
+    auto cl_sender = new MyClient(nullptr, "localhost", 1883);
+    auto cl_receiver = new MyClient(nullptr, "localhost", 1883);
+    if (cl_receiver->subscribe(NULL, "/command", 1) != 0)
+    {
+      std::cerr << "Error on Mosquitto subscribe topic: /feedback" << std::endl;
+      return -1;
+    }
+
+    std::cout << "***** Child Process **** CLIENT2 (sender and recevier)  ****** : PID" << getpid() << std::endl;
     std::size_t cnt = 0;
     do
     {
-      const auto start {now()};
-      my_msg cmd;
-      cl->publish_with_tracking("/feedback", cmd);
+      const auto start{ now() };
+      my_msg cmd_recv;
+      my_msg feedback_sent;
+      int delay = 0;
+
+      cl_sender->publish_with_tracking("/feedback", cmd_recv);
+
+      if (cl_receiver->loop(1) == MOSQ_ERR_SUCCESS)
+      {
+        if (cl_receiver->getLastReceivedMessage(feedback_sent))
+        {
+          if (!cl_receiver->isFirstMsgRec())
+          {
+            std::cout << "CLIENT2  First Message not yet recevied! " << std::endl;
+          }
+          else
+          {
+            delay = std::fabs(cl_sender->get_msg_count_cmd() - feedback_sent.msg.count);
+            if (delay > maximum_missing_cycle)
+            {
+              std::cerr << "CLIENT2 delay: " << delay << " exceeds maximum missing cycle ( " << maximum_missing_cycle
+                        << " ) . command: " << cl_receiver->get_msg_count_cmd()
+                        << ", feedback: " << feedback_sent.msg.count << std::endl;
+            }
+          }
+        }
+        else
+        {
+          std::cerr << "CLIENT2 No new MQTT feedback message available OR first message not received yet... not good, "
+                       "topic: /feedback";
+        }
+      }
+      else
+      {
+        std::cerr << "CLIENT2 loop() failed. check it" << std::endl;
+      }
 
       std::this_thread::sleep_until(awake_time());
-      std::chrono::duration<double, std::milli> elapsed {now() - start};
-      if(cnt++ % 1000 == 0)
+      std::chrono::duration<double, std::milli> elapsed{ now() - start };
+      if (cnt % 250 == 0)
       {
-        std::cout << "SENDER Time from while(1) start [ms]: " << cmd.msg.count * 4 << std::endl;
+        std::cout << "CLIENT2 SENDER [ms]: " << cmd_recv.msg.count * 4
+                  << " RECEIVER  [ms]: " << feedback_sent.msg.count * 4 << "\tDelay [ms]: " << delay * 4
+                  << std::endl;
       }
+      cnt++;
     } while (true);
   }
 
