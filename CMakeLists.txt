@@ -37,6 +37,9 @@ endif()
 #############################
 ## DEPENDANCIES            ##
 #############################
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
+
 if(USE_ROS1)
   find_package(catkin REQUIRED)
 
@@ -76,6 +79,8 @@ if(USE_ROS1)
   if(WIN32)
     list(APPEND DEPENDENCIES_LIBRARIES "C:\\ws\\mosquitto-build\\lib\\")
   endif()
+else()
+list(APPEND DEPENDENCIES_LIBRARIES PkgConfig::Mosquitto)
 endif()
 
 # ================================================
