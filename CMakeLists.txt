@@ -1,7 +1,7 @@
 #############################
 ## PRELIMINARIES           ##
 #############################
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.16.0)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/cnrConfigMacros.cmake)
 
@@ -158,25 +158,13 @@ endif()
 ## Testing              ##
 ##########################
 if(ENABLE_TESTING)
-  # include(GoogleTest)
-  # add_executable(cnr_mqtt_client_server_test 
-  #   src/cnr_mqtt_client_server/utils/args_parser.cpp
-  #   src/cnr_mqtt_client_server/utils/yaml_manager.cpp
-  #   test/test_server.cpp)
-  # if(${CMAKE_VERSION} VERSION_GREATER  "3.16.0")
-  #   target_link_libraries(cnr_mqtt_client_server_test cnr_mqtt_client
-  #      Threads::Threads GTest::gtest_main Boost::program_options Boost::system Boost::filesystem Boost::iostreams Boost::regex)
-  # else()
-  #   target_link_libraries(cnr_mqtt_client_server_test cnr_mqtt_client GTest::gtest_main)
-  #   if(THREADS_HAVE_PTHREAD_ARG)
-  #     target_compile_options(cnr_mqtt_client_server_test PUBLIC "-pthread")
-  #   endif()
-  #   if(CMAKE_THREAD_LIBS_INIT)
-  #     target_link_libraries(cnr_mqtt_client_server_test "${CMAKE_THREAD_LIBS_INIT}")
-  #   endif()
-  # endif()
-  # target_compile_definitions(cnr_mqtt_client_server_test PRIVATE TEST_DIR="${CMAKE_CURRENT_LIST_DIR}/test")  
-  # gtest_discover_tests(cnr_mqtt_client_server_test)
+  include(GoogleTest)
+  add_executable(cnr_mqtt_client_test
+    src/test/test.cpp)
+  target_link_libraries(cnr_mqtt_client_test cnr_mqtt_client
+        Threads::Threads GTest::gtest_main Boost::program_options Boost::system Boost::filesystem Boost::iostreams Boost::regex)
+  target_compile_definitions(cnr_mqtt_client_test PRIVATE TEST_DIR="${CMAKE_CURRENT_LIST_DIR}/test")  
+  gtest_discover_tests(cnr_mqtt_client_test)
  endif(ENABLE_TESTING)
 
 
