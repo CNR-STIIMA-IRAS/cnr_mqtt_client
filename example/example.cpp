@@ -381,8 +381,8 @@ int main()
       std::chrono::duration<double, std::milli> elapsed{ now() - start };
       if (cnt % 250 == 0)
       {
-        std::cout << "CLIENT1 SENDER [ms]: " << cmd_sent.msg.count * 4
-                  << " RECEIVER  [ms]: " << feedback_recv.msg.count * 4 << "\tDelay [ms]: " << delay * 4
+        std::cout << "CLIENT1 SENT [ms]: " << cmd_sent.msg.count * 4
+                  << " LAST RECEIVED  [ms]: " << feedback_recv.msg.count * 4 << "\tDelay [ms]: " << delay * 4
                   << std::endl;
       }
     }
@@ -406,11 +406,11 @@ int main()
       my_msg feedback_sent;
       int delay = 0;
 
-      cl_sender->publish_with_tracking("/feedback", cmd_recv);
+      cl_sender->publish_with_tracking("/feedback", feedback_sent);
 
       if (cl_receiver->loop(1) == MOSQ_ERR_SUCCESS)
       {
-        if (cl_receiver->getLastReceivedMessage(feedback_sent))
+        if (cl_receiver->getLastReceivedMessage(cmd_recv))
         {
           if (!cl_receiver->isFirstMsgRec())
           {
@@ -418,12 +418,12 @@ int main()
           }
           else
           {
-            delay = std::fabs(cl_sender->get_msg_count_cmd() - feedback_sent.msg.count);
+            delay = std::fabs(cl_sender->get_msg_count_cmd() - cmd_recv.msg.count);
             if (delay > maximum_missing_cycle)
             {
               std::cerr << "CLIENT2 delay: " << delay << " exceeds maximum missing cycle ( " << maximum_missing_cycle
                         << " ) . command: " << cl_receiver->get_msg_count_cmd()
-                        << ", feedback: " << feedback_sent.msg.count << std::endl;
+                        << ", feedback: " << cmd_recv.msg.count << std::endl;
             }
           }
         }
@@ -442,8 +442,8 @@ int main()
       std::chrono::duration<double, std::milli> elapsed{ now() - start };
       if (cnt % 250 == 0)
       {
-        std::cout << "CLIENT2 SENDER [ms]: " << cmd_recv.msg.count * 4
-                  << " RECEIVER  [ms]: " << feedback_sent.msg.count * 4 << "\tDelay [ms]: " << delay * 4
+        std::cout << "CLIENT2 SENT [ms]: " << feedback_sent.msg.count * 4
+                  << " LAST RECEIVED  [ms]: " << cmd_recv.msg.count * 4 << "\tDelay [ms]: " << delay * 4
                   << std::endl;
       }
       cnt++;
