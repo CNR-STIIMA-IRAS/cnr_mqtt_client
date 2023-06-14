@@ -375,7 +375,7 @@ int main()
         std::cerr << "CLIENT1 No new MQTT feedback message available OR first message not received yet... not good, "
                      "topic: /feedback";
       }
-      // cl->publish(feedback.data, sizeof(my_msg), "/degub_feedback");
+      cl->publish(feedback_recv.data, sizeof(my_msg), "/degub_feedback");
 
       std::this_thread::sleep_until(awake_time());
       std::chrono::duration<double, std::milli> elapsed{ now() - start };
