@@ -37,8 +37,16 @@ endif()
 #############################
 ## DEPENDANCIES            ##
 #############################
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
+
+if (NOT WIN32)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(Mosquitto IMPORTED_TARGET libmosquitto REQUIRED)
+else()
+  list(APPEND DEPENDENCIES_DIRECTORIES "C:\\ws\\mosquitto-build\\lib\\")
+  list(APPEND DEPENDENCIES_INCLUDE_DIRS "C:\\ws\\mosquitto\\include\\")
+  list(APPEND DEPENDENCIES_LIBRARIES "mosquitto")
+endif()
+
 
 if(USE_ROS1)
   find_package(catkin REQUIRED)
@@ -62,34 +70,31 @@ cnr_enable_testing(ENABLE_TESTING ENABLE_COVERAGE USE_ROS1)
 #################
 if(USE_ROS1)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS ${catkin_INCLUDE_DIRS})
-
-  if(WIN32)
-  list(APPEND DEPENDENCIES_INCLUDE_DIRS "C:\\ws\\mosquitto\\include\\")
-  endif()
 endif()
 
 list(APPEND BUILD_INTERFACE_INCLUDE_DIRS ${DEPENDENCIES_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/include)
-list(APPEND INSTALL_INTERFACE_INCLUDE_DIRS include ${DEPENDENCIES_INCLUDE_DIRS} include)
+list(APPEND INSTALL_INTERFACE_INCLUDE_DIRS include ${DEPENDENCIES_INCLUDE_DIRS})
 
 if(USE_ROS1)
   list(APPEND DEPENDENCIES_LIBRARIES ${catkin_LIBRARIES} )
-
-  if(WIN32)
-    list(APPEND DEPENDENCIES_LIBRARIES "C:\\ws\\mosquitto-build\\lib\\")
-  endif()
-else()
-list(APPEND DEPENDENCIES_LIBRARIES )
 endif()
 
 # ================================================
-add_library(${PROJECT_NAME} SHARED
+include_directories(${INSTALL_INTERFACE_INCLUDE_DIRS})
+add_library(${PROJECT_NAME} SHARED  
               src/cnr_mqtt_client.cpp
                 src/dynamic_callback.cpp)
-target_include_directories(${PROJECT_NAME}  PUBLIC
-  "$<BUILD_INTERFACE:${BUILD_INTERFACE_INCLUDE_DIRS}>"
-    "$<INSTALL_INTERFACE:${INSTALL_INTERFACE_INCLUDE_DIRS}>")
+#target_include_directories(${PROJECT_NAME}  PUBLIC
+#  "$<BUILD_INTERFACE:${BUILD_INTERFACE_INCLUDE_DIRS}>"
+#    "$<INSTALL_INTERFACE:${INSTALL_INTERFACE_INCLUDE_DIRS}>")
 
-target_link_libraries(${PROJECT_NAME} PUBLIC PkgConfig::Mosquitto)
+
+if(NOT WIN32)
+  target_link_libraries(${PROJECT_NAME} PUBLIC PkgConfig::Mosquitto)
+else()
+  target_link_directories(${PROJECT_NAME} PUBLIC ${DEPENDENCIES_DIRECTORIES})
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${DEPENDENCIES_LIBRARIES})
+endif()
 
 if(BUILD_EXAMPLE)
   add_executable(cnr_mqtt_client_example example/example.cpp)
@@ -116,6 +121,15 @@ install(TARGETS cnr_mqtt_client cnr_mqtt_client_example
         LIBRARY DESTINATION ${CNR_INSTALL_LIB_DIR}
         RUNTIME DESTINATION ${CNR_INSTALL_BIN_DIR}
 )
+
+if(BUILD_EXAMPLE)
+install(TARGETS cnr_mqtt_client_example
+        EXPORT export_cnr_mqtt_client
+        ARCHIVE DESTINATION ${CNR_INSTALL_LIB_DIR}
+        LIBRARY DESTINATION ${CNR_INSTALL_LIB_DIR}
+        RUNTIME DESTINATION ${CNR_INSTALL_BIN_DIR}
+)
+endif()
 
 if(USE_ROS1)
   install(DIRECTORY launch/

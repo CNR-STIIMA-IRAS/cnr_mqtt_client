@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 
+
 #include "json.hpp"
 #include <cnr_mqtt_client/cnr_mqtt_client.h>
 
@@ -317,7 +318,7 @@ constexpr int maximum_missing_cycle = 500;
 
 int main()
 {
-  pid_t c_pid = fork();
+  auto c_pid = fork();
 
   if (c_pid == -1)
   {
