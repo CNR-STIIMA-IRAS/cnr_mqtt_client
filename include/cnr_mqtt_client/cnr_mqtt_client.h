@@ -106,7 +106,7 @@ namespace cnr
       int reconnect();
       int subscribe(int *mid, const char *sub, int qos=0);
       int unsubscribe(int *mid, const char *sub);
-      int publish(const void* payload, int payload_len, const char* topic_name);
+      int publish(const void* payload, const int& payload_len, const char* topic_name);
 
       typedef void (MQTTClient::*on_connect_callback)  (struct mosquitto *mosq, void *obj, int reason_code);
       typedef void (MQTTClient::*on_subscribe_callback)(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos);

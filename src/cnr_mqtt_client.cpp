@@ -243,7 +243,7 @@ int MQTTClient::unsubscribe(int* mid, const char* sub)
   throw std::runtime_error("Mosquitto not initialized.");
 }
 
-int MQTTClient::publish(const void* payload, int payload_len, const char* topic_name)
+int MQTTClient::publish(const void* payload, const int& payload_len, const char* topic_name)
 {
   if (mosq_initialized_)
   {
