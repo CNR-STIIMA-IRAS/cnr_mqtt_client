@@ -139,7 +139,7 @@ MQTTClient::MQTTClient(const char* id, const char* host, int port, MsgEncoder* m
   if (rc != MOSQ_ERR_SUCCESS)
   {
     mosquitto_destroy(mosq_);
-#ifdef WIN32
+#ifdef _WIN32
     strerror_s(errbuffer_, 1024, rc);
     printf("Error while connecting to the broker: %s", errbuffer_);
 #else
@@ -168,7 +168,7 @@ int MQTTClient::loop(int timeout)
     rc = mosquitto_loop(mosq_, timeout, 1);
     if (rc != MOSQ_ERR_SUCCESS)
     {
-#ifdef WIN32
+#ifdef _WIN32
       strerror_s(errbuffer_, 1024, rc);
       printf("Error in loop: %s", errbuffer_);
 #else
@@ -188,7 +188,7 @@ int MQTTClient::reconnect()
     int rc = mosquitto_reconnect(mosq_);
     if (rc != MOSQ_ERR_SUCCESS)
     {
-#ifdef WIN32
+#ifdef _WIN32
       strerror_s(errbuffer_, 1024, rc);
       printf("Error on subscribe: %s", errbuffer_);
 #else
@@ -208,7 +208,7 @@ int MQTTClient::subscribe(int* mid, const char* sub, int qos)
     int rc = mosquitto_subscribe(mosq_, mid, sub, qos);
     if (rc != MOSQ_ERR_SUCCESS)
     {
-#ifdef WIN32
+#ifdef _WIN32
       strerror_s(errbuffer_, 1024, rc);
       printf("Error on subscribe: %s", errbuffer_);
 #else
@@ -229,7 +229,7 @@ int MQTTClient::unsubscribe(int* mid, const char* sub)
 
     if (rc != MOSQ_ERR_SUCCESS)
     {
-#ifdef WIN32
+#ifdef _WIN32
       strerror_s(errbuffer_, 1024, rc);
       printf("Error on unsubscribe: %s", errbuffer_);
 #else
@@ -251,7 +251,7 @@ int MQTTClient::publish(const void* payload, int payload_len, const char* topic_
 
     if (rc != MOSQ_ERR_SUCCESS)
     {
-#ifdef WIN32
+#ifdef _WIN32
       strerror_s(errbuffer_, 1024, rc);
       printf("Error on publish: %s", errbuffer_);
 #else
