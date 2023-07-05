@@ -115,7 +115,7 @@ install(DIRECTORY include/${PROJECT_NAME}
         PATTERN ".git" EXCLUDE
 )
 
-install(TARGETS cnr_mqtt_client cnr_mqtt_client_example
+install(TARGETS cnr_mqtt_client 
         EXPORT export_cnr_mqtt_client
         ARCHIVE DESTINATION ${CNR_INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${CNR_INSTALL_LIB_DIR}
