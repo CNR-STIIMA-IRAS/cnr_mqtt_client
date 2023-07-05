@@ -5,7 +5,6 @@
 #include <chrono>
 #include <thread>
 
-
 #include "json.hpp"
 #include <cnr_mqtt_client/cnr_mqtt_client.h>
 
@@ -316,24 +315,63 @@ private:
 
 constexpr int maximum_missing_cycle = 500;
 
-int main()
+enum class Launcher 
 {
-  auto c_pid = fork();
+  BOTH, CLIENT, SERVER
+};
 
-  if (c_pid == -1)
+int main(int argc, char* argv[] )
+{
+  pid_t c_pid;
+
+  Launcher launcher = Launcher::BOTH;
+  std::string host = "localhost";
+
+  for(size_t i=0;i<argc;i++)
+    std::cout << "ARGV["<< i<<"]: " << argv[i] << ", ";
+  std::cout << std::endl;
+
+  if(argc==1)
   {
-    perror("fork");
-    exit(EXIT_FAILURE);
-  }
-  else if (c_pid > 0)
-  {
-    auto cl = new MyClient(nullptr, "localhost", 1883);
-    std::cout << "***** Parent Process ****** CLIENT1 ****** PID: " << getpid() << std::endl;
-    if (cl->subscribe(NULL, "/feedback", 1) != 0)
+    c_pid = fork();
+    if (c_pid == -1)
     {
-      std::cerr << "CLIENT1 Error on Mosquitto subscribe topic: /feedback" << std::endl;
+      perror("fork");
+      exit(EXIT_FAILURE);
+    }
+  }
+  else
+  {
+    if(argv[1] == "c")
+    {
+      launcher = Launcher::CLIENT;
+    }
+    else
+    {
+      launcher = Launcher::SERVER;
+    }
+ 
+    launcher = Launcher::CLIENT;
+    
+    host = argv[2];
+  }
+
+  std::cout << "Client/Server: " << (launcher == Launcher::CLIENT ? "CLIENT" : "SERVER")<< std::endl;
+  std::cout << "HOST: " << host << std::endl;
+
+
+
+  if (launcher == Launcher::CLIENT)
+  {
+    auto cl = new MyClient(nullptr, host.c_str(), 1883);
+    std::cout << "***** Parent Process ****** CLIENT1 ****** PID: " << getpid() << std::endl;
+    if (cl->subscribe(NULL, "/robot_1/feedback", 1) != 0)
+    {
+      std::cerr << "CLIENT1 Error on Mosquitto subscribe topic: /robot_1/feedback" << std::endl;
       return -1;
     }
+
+    bool first_feedback = true;
 
     my_msg cmd_sent;
     my_msg feedback_recv;
@@ -343,7 +381,7 @@ int main()
       cnt++;
       int delay = 0;
       const auto start{ now() };
-      cl->publish_with_tracking("/command", cmd_sent);
+      //cl->publish_with_tracking("/robot_1/command", cmd_sent);
 
       if (cl->loop(1) != MOSQ_ERR_SUCCESS)
       {
@@ -358,14 +396,19 @@ int main()
         }
         else
         {
-          if (cnt % 250 == 0)
-          {
-          }
 
-          delay = std::fabs(cl->get_msg_count_cmd() - feedback_recv.msg.count);
+          if (first_feedback)
+          {
+            first_feedback = false;
+            cl->set_msg_count_cmd(feedback_recv.msg.count);
+          }
+                  
+          cl->publish_with_tracking("/robot_1/command", cmd_sent);
+
+          delay = std::fabs(int(cl->get_msg_count_cmd()) - int(feedback_recv.msg.count));
           if (delay > maximum_missing_cycle)
           {
-            std::cerr << "CLIENT1 delay: " << delay << " exceeds maximum missing cycle ( " << maximum_missing_cycle
+            std::cerr << "CLIENT 1 delay: " << delay << " exceeds maximum missing cycle ( " << maximum_missing_cycle
                       << " ) . command: " << cl->get_msg_count_cmd() << ", feedback: " << feedback_recv.msg.count
                       << std::endl;
           }
@@ -382,16 +425,16 @@ int main()
       std::chrono::duration<double, std::milli> elapsed{ now() - start };
       if (cnt % 250 == 0)
       {
-        std::cout << "CLIENT1 SENT [ms]: " << cmd_sent.msg.count * 4
-                  << " LAST RECEIVED  [ms]: " << feedback_recv.msg.count * 4 << "\tDelay [ms]: " << delay * 4
+        std::cout << "CLIENT1 CMD SENT [ms]: " << cmd_sent.msg.count * 4
+                  << " LAST FEEDBACK RECEIVED  [ms]: " << feedback_recv.msg.count * 4 << "\tDelay [ms]: " << delay * 4
                   << std::endl;
       }
     }
   }
   else
   {
-    auto cl_sender = new MyClient(nullptr, "localhost", 1883);
-    auto cl_receiver = new MyClient(nullptr, "localhost", 1883);
+    auto cl_sender = new MyClient(nullptr, host.c_str(), 1883);
+    auto cl_receiver = new MyClient(nullptr, host.c_str(), 1883);
     if (cl_receiver->subscribe(NULL, "/command", 1) != 0)
     {
       std::cerr << "Error on Mosquitto subscribe topic: /feedback" << std::endl;

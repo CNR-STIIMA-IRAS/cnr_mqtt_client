@@ -157,9 +157,6 @@ MQTTClient::~MQTTClient()
   {
     mosquitto_lib_cleanup();
   }
-
-  // NP: This terminate the program, a full shutdown is called, really do you want this behavior?
-  throw std::runtime_error("Mosquitto not initialized.");
 }
 
 int MQTTClient::loop(int timeout)
