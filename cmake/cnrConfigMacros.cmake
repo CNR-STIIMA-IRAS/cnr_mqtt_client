@@ -107,12 +107,15 @@ endmacro()
 #
 # cnr_enable_testing
 #
-macro(cnr_enable_testing ENABLE_TESTING ENABLE_COVERAGE USE_ROS1)
+macro(cnr_enable_testing ENABLE_TESTING ENABLE_COVERAGE ROS_VERSION)
   if(${ENABLE_TESTING})
     message(STATUS "Enable testing")
-    if(${USE_ROS1})
+    if(${ROS_VERSION} EQUAL 1) 
       find_package(rostest REQUIRED)
       find_package(roscpp REQUIRED)
+    elseif(${ROS_VERSION} EQUAL 2)
+      # to be done
+
     else()
       enable_testing()
       find_package(GTest REQUIRED)
@@ -120,9 +123,12 @@ macro(cnr_enable_testing ENABLE_TESTING ENABLE_COVERAGE USE_ROS1)
 
     if(${ENABLE_COVERAGE_TESTING} AND NOT WIN32)
       message(STATUS "Enable Coverage")
-      if(${USE_ROS1})
+      if(${ROS_VERSION} EQUAL 1) 
         find_package(code_coverage REQUIRED)
         APPEND_COVERAGE_COMPILER_FLAGS()
+      elseif(${ROS_VERSION} EQUAL 2)
+        # to be done
+
       else()
         set(CMAKE_CXX_FLAGS "-Wno-deprecated-register ${CMAKE_CXX_FLAGS}")
         set(CMAKE_CXX_FLAGS_DEBUG "-Wno-deprecated-register -O0 -g -fprofile-arcs -ftest-coverage ${CMAKE_CXX_FLAGS_DEBUG}")
@@ -134,12 +140,17 @@ endmacro()
 #
 # cnr_install_directories
 #
-macro(cnr_install_directories USE_ROS1 CNR_INSTALL_INCLUDE_DIR CNR_INSTALL_LIB_DIR CNR_INSTALL_BIN_DIR CNR_INSTALL_SHARE_DIR)
-if(USE_ROS1)
+macro(cnr_install_directories ROS_VERSION CNR_INSTALL_INCLUDE_DIR CNR_INSTALL_LIB_DIR CNR_INSTALL_BIN_DIR CNR_INSTALL_SHARE_DIR)
+if(${ROS_VERSION} EQUAL 1)
   set(${CNR_INSTALL_INCLUDE_DIR}    ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
   set(${CNR_INSTALL_LIB_DIR}        ${CATKIN_PACKAGE_LIB_DESTINATION})
   set(${CNR_INSTALL_BIN_DIR}        ${CATKIN_GLOBAL_BIN_DESTINATION})
   set(${CNR_INSTALL_SHARE_DIR}      ${CATKIN_PACKAGE_SHARE_DESTINATION})
+elseif(${ROS_VERSION} EQUAL 2)
+  set(${CNR_INSTALL_INCLUDE_DIR}    "${CMAKE_INSTALL_PREFIX}/include/${PROJECT_NAME}")
+  set(${CNR_INSTALL_LIB_DIR}        "${CMAKE_INSTALL_PREFIX}/lib")
+  set(${CNR_INSTALL_BIN_DIR}        "${CMAKE_INSTALL_PREFIX}/bin")
+  set(${CNR_INSTALL_SHARE_DIR}      "${CMAKE_INSTALL_PREFIX}/share")
 else()
   set(${CNR_INSTALL_INCLUDE_DIR}    "${CMAKE_INSTALL_PREFIX}/include")
   set(${CNR_INSTALL_LIB_DIR}        "${CMAKE_INSTALL_PREFIX}/lib")

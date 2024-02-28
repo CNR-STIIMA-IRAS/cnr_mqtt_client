@@ -21,14 +21,35 @@ cnr_set_flags()
 #############################
 ## OPTIONS                 ##
 #############################
-option(USE_ROS1                 "ROS SUPPORT" ON)
 option(ENABLE_TESTING           "ENABLE TESTING" OFF)
 option(ENABLE_COVERAGE_TESTING  "ENABLE COVERAGE TESTING" ON)
 option(BUILD_EXAMPLE            "COMPILE THE EXAMPLE" OFF)
 
-if(USE_ROS1)
-  set(ENABLE_TESTING ${CATKIN_ENABLE_TESTING})
+set(ROS_VERSION $ENV{ROS_VERSION})
+if(ROS_VERSION STREQUAL "")
+  message(FATAL_ERROR "No supported version of ROS found!")
+  set(USE_ROS OFF)
 endif()
+
+if(NOT((ROS_VERSION EQUAL 1) OR (ROS_VERSION EQUAL 2)))
+  message(FATAL_ERROR "No supported version of ROS found!")
+  set(USE_ROS OFF)
+endif()
+
+if((ROS_VERSION EQUAL 1) OR (ROS_VERSION EQUAL 2))
+  set(USE_ROS ON)
+endif()
+
+
+if(ROS_VERSION EQUAL 1)
+  set(ENABLE_TESTING ${CATKIN_ENABLE_TESTING})
+
+elseif(ROS_VERSION EQUAL 2)
+  # to be done if necessary
+
+endif()
+
+
 #############################
 ## END - OPTIONS           ##
 #############################
@@ -48,17 +69,22 @@ else()
 endif()
 
 
-if(USE_ROS1)
+if(ROS_VERSION EQUAL 1)
   find_package(catkin REQUIRED)
   catkin_package(
     INCLUDE_DIRS include
     LIBRARIES cnr_mqtt_client
   )
+
+elseif(ROS_VERSION EQUAL 2)
+  find_package(ament_cmake REQUIRED)
+
 endif()
 
-cnr_install_directories(USE_ROS1 
-  CNR_INSTALL_INCLUDE_DIR CNR_INSTALL_LIB_DIR CNR_INSTALL_BIN_DIR CNR_INSTALL_SHARE_DIR)
-cnr_enable_testing(ENABLE_TESTING ENABLE_COVERAGE USE_ROS1)
+cnr_install_directories(ROS_VERSION CNR_INSTALL_INCLUDE_DIR CNR_INSTALL_LIB_DIR CNR_INSTALL_BIN_DIR CNR_INSTALL_SHARE_DIR)
+cnr_enable_testing(ENABLE_TESTING ENABLE_COVERAGE ROS_VERSION)
+
+
 #############################
 ## END DEPENDANCIES        ##
 #############################
@@ -68,15 +94,23 @@ cnr_enable_testing(ENABLE_TESTING ENABLE_COVERAGE USE_ROS1)
 #################
 ## Build       ##
 #################
-if(USE_ROS1)
+if(ROS_VERSION EQUAL 1)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS ${catkin_INCLUDE_DIRS})
-endif()
+
+elseif(ROS_VERSION EQUAL 2)
+  # to be done if necessary
+
+  endif()
 
 list(APPEND BUILD_INTERFACE_INCLUDE_DIRS ${DEPENDENCIES_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/include)
 list(APPEND INSTALL_INTERFACE_INCLUDE_DIRS include ${DEPENDENCIES_INCLUDE_DIRS})
 
-if(USE_ROS1)
+if(ROS_VERSION EQUAL 1)
   list(APPEND DEPENDENCIES_LIBRARIES ${catkin_LIBRARIES} )
+
+elseif(ROS_VERSION EQUAL 2)
+  # to be done if necessary
+
 endif()
 
 # ================================================
@@ -84,10 +118,6 @@ include_directories(${INSTALL_INTERFACE_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} SHARED  
               src/cnr_mqtt_client.cpp
                 src/dynamic_callback.cpp)
-#target_include_directories(${PROJECT_NAME}  PUBLIC
-#  "$<BUILD_INTERFACE:${BUILD_INTERFACE_INCLUDE_DIRS}>"
-#    "$<INSTALL_INTERFACE:${INSTALL_INTERFACE_INCLUDE_DIRS}>")
-
 
 if(NOT WIN32)
   target_link_libraries(${PROJECT_NAME} PUBLIC PkgConfig::Mosquitto)
@@ -115,26 +145,30 @@ install(DIRECTORY include/${PROJECT_NAME}
         PATTERN ".git" EXCLUDE
 )
 
-install(TARGETS cnr_mqtt_client 
-        EXPORT export_cnr_mqtt_client
+install(TARGETS ${PROJECT_NAME} 
+        EXPORT export_${PROJECT_NAME}
         ARCHIVE DESTINATION ${CNR_INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${CNR_INSTALL_LIB_DIR}
         RUNTIME DESTINATION ${CNR_INSTALL_BIN_DIR}
 )
 
 if(BUILD_EXAMPLE)
-install(TARGETS cnr_mqtt_client_example
-        EXPORT export_cnr_mqtt_client
+install(TARGETS ${PROJECT_NAME}
+        EXPORT export_${PROJECT_NAME}
         ARCHIVE DESTINATION ${CNR_INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${CNR_INSTALL_LIB_DIR}
         RUNTIME DESTINATION ${CNR_INSTALL_BIN_DIR}
 )
 endif()
 
-if(USE_ROS1)
+if(ROS_VERSION EQUAL 1)
   install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   PATTERN ".svn" EXCLUDE)
+
+elseif(ROS_VERSION EQUAL 2)
+   # to be done if necessary
+
 endif()
 ###################
 ## END - Install ##
@@ -143,7 +177,7 @@ endif()
 ##################################
 ## CMAKE CONFIG (IF NOT CATKIN) ##
 ##################################
-if(NOT USE_ROS1) 
+if(NOT USE_ROS) 
   set(export_targets ${export_targets};cnr_mqtt_client)
   export(EXPORT export_cnr_mqtt_client
     FILE "${PROJECT_BINARY_DIR}/export_cnr_mqtt_client.cmake")
