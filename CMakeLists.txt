@@ -150,6 +150,7 @@ install(TARGETS ${PROJECT_NAME}
         ARCHIVE DESTINATION ${CNR_INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${CNR_INSTALL_LIB_DIR}
         RUNTIME DESTINATION ${CNR_INSTALL_BIN_DIR}
+        INCLUDES DESTINATION include
 )
 
 if(BUILD_EXAMPLE)
@@ -158,6 +159,7 @@ install(TARGETS ${PROJECT_NAME}
         ARCHIVE DESTINATION ${CNR_INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${CNR_INSTALL_LIB_DIR}
         RUNTIME DESTINATION ${CNR_INSTALL_BIN_DIR}
+        INCLUDES DESTINATION include
 )
 endif()
 
@@ -167,12 +169,18 @@ if(ROS_VERSION EQUAL 1)
   PATTERN ".svn" EXCLUDE)
 
 elseif(ROS_VERSION EQUAL 2)
-   # to be done if necessary
+  ament_export_include_directories(include)
+  
+  ament_export_libraries(
+         ${PROJECT_NAME}
+  )
+  ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 endif()
 ###################
 ## END - Install ##
 ###################
+
 
 ##################################
 ## CMAKE CONFIG (IF NOT CATKIN) ##
@@ -234,3 +242,6 @@ if( ENABLE_TESTING AND ENABLE_COVERAGE_TESTING AND NOT WIN32 )
   # endif()
 endif()
 
+if(ROS_VERSION EQUAL 2)
+  ament_package()
+endif()
